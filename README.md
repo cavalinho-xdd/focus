@@ -1,6 +1,6 @@
 # Focus App 🌊
 
-A modern, highly-gamified, anti-procrastination productivity application designed to enforce a deep "flow state" and block distracting apps. Built with Electron, React, and Firebase, featuring AI-powered verification quizzes via the Gemini API.
+A modern, gamified, anti-procrastination productivity application designed to enforce a deep "flow state" and block distracting apps. Built with Electron, React, and Firebase, featuring AI-powered verification quizzes via the Gemini API.
 
 ## ⚠️ Current Status: In Development
 **Focus App is currently in active development and not yet available for direct download.**
