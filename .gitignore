@@ -1,0 +1,11 @@
+node_modules/
+dist/
+release/
+.env
+.gemini/
+work.md
+cavmean.md
+test.js
+PROJECT_STATUS.md
+*.log
+.DS_Store

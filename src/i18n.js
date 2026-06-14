@@ -1,0 +1,259 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+
+const resources = {
+  en: {
+    translation: {
+      "app": {
+        "verifying": "Verifying login...",
+        "loadingProfile": "Loading profile...",
+        "dbError": "DB Error: {{error}}",
+        "dashboard": "Dashboard",
+        "community": "Community",
+        "settings": "Settings",
+        "logout": "Log out",
+        "level": "Lvl"
+      },
+      "dashboard": {
+        "title": "Your Stats",
+        "overview": "Your Overview",
+        "todayGoal": "Today's Goal",
+        "totalMinutes": "Total Minutes",
+        "completedGoals": "Completed Goals",
+        "level": "Level",
+        "xp": "Experience (XP)"
+      },
+      "goalPlanner": {
+        "title": "Start a Focus Session",
+        "quizTopic": "Topic for AI evaluation quiz",
+        "topicPlaceholder": "e.g. Web App Architecture, Photosynthesis...",
+        "timeInMinutes": "Time in minutes",
+        "startFocus": "Start Focus",
+        "missingApi": "Missing Gemini API key in Settings. The evaluation quiz won't work without it.",
+        "hardcoreMode": "Hardcore Mode (Anti-Cheat)",
+        "hardcoreWarningTitle": "Warning: Hardcore Mode",
+        "hardcoreWarningDesc": "You will not be able to close the app or cancel the focus block until the time runs out. Are you sure you want to proceed?",
+        "hardcoreAccept": "I understand, start",
+        "usePomodoro": "Use Pomodoro (25m Focus / 5m Break)"
+      },
+      "timerScreen": {
+        "focusingOn": "Focusing on",
+        "timeRemaining": "Time Remaining",
+        "cancelFocus": "Cancel Focus Block",
+        "breakActive": "Break Time! Relax.",
+        "phaseFocus": "FOCUS PHASE",
+        "phaseBreak": "BREAK PHASE",
+        "finished": "Finished!"
+      },
+      "quizScreen": {
+        "notAvailable": "Quiz not available",
+        "failedToGenerate": "Failed to generate questions. Check your connection and API key.",
+        "continue": "Continue",
+        "dontKnow": "I don't know",
+        "apiError": "Error during API evaluation.",
+        "fallbackApi": "Fallback: API was unavailable.",
+        "evaluation": "Evaluation",
+        "claimXp": "Claim XP",
+        "knowledgeCheckTitle": "Knowledge Check",
+        "yourAnswer": "Your answer...",
+        "evaluating": "AI is evaluating...",
+        "submit": "Submit for evaluation"
+      },
+      "settings": {
+        "title": "Settings",
+        "language": "Language",
+        "english": "English",
+        "czech": "Czech",
+        "apiKey": "Gemini API Key",
+        "saveSettings": "Save Settings",
+        "saved": "Saved!",
+        "keyDisclaimer": "The key remains securely on your device (userdata.json). It is not sent anywhere else (except Google API).",
+        "blacklistLabel": "Blacklist (Blocked Applications)",
+        "blacklistDisclaimer": "Process names that will be terminated during Focus. One process per line.",
+        "scanApps": "Scan Running Apps",
+        "scanning": "Scanning...",
+        "scanTitle": "Running Processes",
+        "apply": "Apply Selected"
+      },
+      "socialScreen": {
+        "communityFriends": "Community & Friends",
+        "addFriend": "Add Friend",
+        "globalLeaderboard": "Global Leaderboard",
+        "level": "Level",
+        "searchUser": "Search user (email)...",
+        "friendAdded": "Friend added!",
+        "userNotFound": "User not found.",
+        "added": "Added!",
+        "addError": "Error adding friend.",
+        "anonymous": "Anonymous",
+        "you": "(You)",
+        "empty": "No one is here yet.",
+        "communityTitle": "Community & Leaderboards",
+        "globalTop20": "Global Top 20",
+        "friends": "Friends",
+        "add": "Add",
+        "loading": "Loading...",
+        "addFriendInstruction": "Add friends by searching their exact nickname.",
+        "friendEmailPlaceholder": "Friend's nickname",
+        "requests": "Requests",
+        "approve": "Approve",
+        "deny": "Deny",
+        "inviteSent": "Invite sent!",
+        "noRequests": "No pending requests.",
+        "requestsTitle": "Friend Requests"
+      },
+      "authScreen": {
+        "loginSignup": "Login / Register",
+        "email": "Email",
+        "password": "Password",
+        "login": "Login",
+        "register": "Register",
+        "noAccount": "Don't have an account? Register",
+        "hasAccount": "Already have an account? Login",
+        "error": "Authentication error.",
+        "nicknameRequired": "Nickname is required for registration.",
+        "emailInUse": "This email is already registered.",
+        "invalidCreds": "Invalid email or password.",
+        "connectionError": "Connection error. Try again.",
+        "nickname": "Nickname",
+        "processing": "Processing...",
+        "createAccount": "Create account",
+        "nicknameInUse": "Nickname is already taken. Choose another."
+      }
+    }
+  },
+  cs: {
+    translation: {
+      "app": {
+        "verifying": "Ověřuji přihlášení...",
+        "loadingProfile": "Načítám profil...",
+        "dbError": "Chyba DB: {{error}}",
+        "dashboard": "Dashboard",
+        "community": "Komunita",
+        "settings": "Nastavení",
+        "logout": "Odhlásit se",
+        "level": "Lvl"
+      },
+      "dashboard": {
+        "title": "Tvoje Statistiky",
+        "overview": "Tvůj přehled",
+        "todayGoal": "Dnešní cíl",
+        "totalMinutes": "Celkem minut",
+        "completedGoals": "Splněné cíle",
+        "level": "Level",
+        "xp": "Zkušenosti (XP)"
+      },
+      "goalPlanner": {
+        "title": "Začít Focus Blok",
+        "quizTopic": "Téma pro kontrolní AI kvíz",
+        "topicPlaceholder": "např. Architektura webovek, Fotosyntéza...",
+        "timeInMinutes": "Čas v minutách",
+        "startFocus": "Spustit Focus",
+        "missingApi": "Chybí Gemini API klíč v Nastavení. Vyhodnocovací kvíz bez něj nebude fungovat.",
+        "hardcoreMode": "Hardcore Mód (Anti-Cheat)",
+        "hardcoreWarningTitle": "Varování: Hardcore Mód",
+        "hardcoreWarningDesc": "Aplikaci nebude možné nijak zavřít ani zrušit odpočet, dokud čas nevyprší. Opravdu chceš pokračovat?",
+        "hardcoreAccept": "Rozumím, spustit",
+        "usePomodoro": "Použít Pomodoro (25m Práce / 5m Pauza)"
+      },
+      "timerScreen": {
+        "focus": "Focus",
+        "focusTopic": "Soustředění: {{topic}}",
+        "cancelFocus": "Přerušit Focus",
+        "finishFocus": "Dokončit Focus",
+        "finished": "Ukončeno!"
+      },
+      "quizScreen": {
+        "notAvailable": "Kvíz není k dispozici",
+        "failedToGenerate": "Otázky se nepodařilo vygenerovat. Zkontroluj připojení a API klíč.",
+        "continue": "Pokračovat",
+        "dontKnow": "Nevím",
+        "apiError": "Chyba při vyhodnocení API.",
+        "fallbackApi": "Fallback: API nebylo dostupné.",
+        "evaluation": "Vyhodnocení",
+        "claimXp": "Vyzvednout XP",
+        "knowledgeCheckTitle": "Ověření znalostí",
+        "yourAnswer": "Tvoje odpověď...",
+        "evaluating": "AI vyhodnocuje...",
+        "submit": "Odeslat k vyhodnocení"
+      },
+      "settings": {
+        "title": "Nastavení",
+        "language": "Jazyk",
+        "english": "Angličtina",
+        "czech": "Čeština",
+        "apiKey": "API Klíč pro Gemini",
+        "saveSettings": "Uložit nastavení",
+        "saved": "Uloženo!",
+        "keyDisclaimer": "Klíč zůstává bezpečně ve tvém zařízení (userdata.json). Není nikam odesílán (kromě Google API).",
+        "blacklistLabel": "Blacklist (Zakázané aplikace)",
+        "blacklistDisclaimer": "Názvy procesů, které budou během Focusu ukončeny. Jeden proces na řádek.",
+        "scanApps": "Skenovat běžící aplikace",
+        "scanning": "Skenuji...",
+        "scanTitle": "Běžící procesy",
+        "apply": "Přidat vybrané"
+      },
+      "socialScreen": {
+        "communityFriends": "Komunita a Přátelé",
+        "addFriend": "Přidat přítele",
+        "globalLeaderboard": "Globální žebříček",
+        "level": "Úroveň",
+        "searchUser": "Vyhledat uživatele (email)...",
+        "friendAdded": "Přítel přidán!",
+        "userNotFound": "Uživatel nenalezen.",
+        "added": "Přidáno!",
+        "addError": "Chyba při přidávání.",
+        "anonymous": "Anonym",
+        "you": "(Ty)",
+        "empty": "Zatím tu nikdo není.",
+        "communityTitle": "Komunita a Žebříčky",
+        "globalTop20": "Globální Top 20",
+        "friends": "Přátelé",
+        "add": "Přidat",
+        "loading": "Načítám...",
+        "addFriendInstruction": "Přidej si přátele hledáním jejich přesné přezdívky.",
+        "friendEmailPlaceholder": "Přezdívka kamaráda",
+        "requests": "Žádosti",
+        "approve": "Schválit",
+        "deny": "Odmítnout",
+        "inviteSent": "Pozvánka odeslána!",
+        "noRequests": "Žádné nevyřízené žádosti.",
+        "requestsTitle": "Žádosti o přátelství"
+      },
+      "authScreen": {
+        "loginSignup": "Přihlášení / Registrace",
+        "email": "Email",
+        "password": "Heslo",
+        "login": "Přihlásit se",
+        "register": "Zaregistrovat",
+        "noAccount": "Nemáš účet? Registrovat",
+        "hasAccount": "Už máš účet? Přihlásit se",
+        "error": "Chyba při autentizaci.",
+        "nicknameRequired": "Přezdívka je povinná pro registraci.",
+        "emailInUse": "Tento email už je zaregistrovaný.",
+        "invalidCreds": "Špatný email nebo heslo.",
+        "connectionError": "Chyba připojení. Zkus to znovu.",
+        "nickname": "Přezdívka",
+        "processing": "Zpracovávám...",
+        "createAccount": "Vytvořit účet",
+        "nicknameInUse": "Přezdívka už se používá. Zvol si jinou."
+      }
+    }
+  }
+};
+
+// Retrieve language from localStorage or default to en
+const savedLang = localStorage.getItem('appLang') || 'en';
+
+i18n
+  .use(initReactI18next)
+  .init({
+    resources,
+    lng: savedLang, // default language
+    fallbackLng: 'en',
+    interpolation: {
+      escapeValue: false // react already safes from xss
+    }
+  });
+
+export default i18n;
