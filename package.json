@@ -58,7 +58,10 @@
 		]
 	},
 	"keywords": [],
-	"author": "Dzejkop",
+	"author": {
+		"name": "cavalinho-xdd",
+		"email": "cavalinho-xdd@github.com"
+	},
 	"license": "ISC",
 	"type": "commonjs",
 	"devDependencies": {
