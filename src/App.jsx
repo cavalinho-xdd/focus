@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Trophy, LogOut, LayoutDashboard } from 'lucide-react';
+import { Settings as SettingsIcon, Trophy, LogOut, LayoutDashboard, AlertCircle } from 'lucide-react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -111,7 +111,12 @@ function App() {
     if (window.api && window.api.gemini && userData.settings.apiKey) {
       window.api.gemini.generate(goal.topic, userData.settings.apiKey, i18n.language)
         .then(res => {
-          if (res.questions) setQuizData(res.questions);
+          if (res && res.questions) setQuizData(res.questions);
+          else setQuizData(null);
+        })
+        .catch(err => {
+          console.error("AI Fallback triggered: generation failed", err);
+          setQuizData(null);
         });
     } else {
       setQuizData(null); // Explicitly clear so we know it's no API
@@ -121,8 +126,8 @@ function App() {
   const handleFocusComplete = async () => {
     if (window.api && window.api.blocker) window.api.blocker.stop();
     
-    if (!userData.settings.apiKey) {
-      // Bypass quiz, award 20 XP (which corresponds to score=2)
+    if (!userData.settings.apiKey || !quizData || quizData.length === 0) {
+      // Bypass quiz (fallback or no API key), award 20 XP (which corresponds to score=2)
       handleQuizSubmit(2, null, true);
     } else {
       setPhase('QUIZ');
@@ -260,7 +265,57 @@ function App() {
         </div>
       )}
 
-      {!authLoading && currentUser && !userData && (
+      {!authLoading && currentUser && !currentUser.emailVerified && (
+        <div className="h-screen w-screen flex flex-col items-center justify-center relative z-10 text-white">
+          <div className="max-w-md w-full bg-[#0B0A15]/95 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center mx-4">
+            <div className="w-16 h-16 rounded-full bg-focus-primary/20 flex items-center justify-center mb-6 text-focus-primary shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+              <AlertCircle size={32} />
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight mb-3">{t('authScreen.verifyEmailTitle')}</h2>
+            <p className="text-gray-400 font-light mb-8 leading-relaxed">
+              {t('authScreen.verifyEmailDesc')}
+            </p>
+            <div className="flex flex-col gap-3 w-full">
+              <button 
+                onClick={async () => {
+                  try {
+                    const { sendEmailVerification } = await import('firebase/auth');
+                    await sendEmailVerification(auth.currentUser);
+                    alert(t('authScreen.emailResent'));
+                  } catch(e) {
+                    console.error(e);
+                  }
+                }}
+                className="w-full py-4 rounded-xl bg-focus-primary hover:bg-focus-secondary text-white font-bold transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)]"
+              >
+                {t('authScreen.resendEmail')}
+              </button>
+              <button 
+                onClick={async () => {
+                  // Force refresh the user token to get updated emailVerified status
+                  await auth.currentUser.reload();
+                  if (auth.currentUser.emailVerified) {
+                    window.location.reload();
+                  } else {
+                    alert("Stále neověřeno. Zkuste to znovu za pár vteřin.");
+                  }
+                }}
+                className="w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium transition-all border border-white/5"
+              >
+                {t('authScreen.refreshStatus')}
+              </button>
+              <button 
+                onClick={() => signOut(auth)}
+                className="w-full mt-4 py-3 text-sm text-gray-500 hover:text-white transition-colors"
+              >
+                {t('app.logout', 'Odhlásit se')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!authLoading && currentUser && currentUser.emailVerified && !userData && (
         <div className="h-screen w-screen flex items-center justify-center text-gray-500 relative z-10">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4">
             <div className="w-8 h-8 rounded-full border-2 border-focus-primary border-t-transparent animate-spin" />
@@ -269,7 +324,7 @@ function App() {
         </div>
       )}
 
-      {!authLoading && currentUser && userData && (
+      {!authLoading && currentUser && currentUser.emailVerified && userData && (
         <div className="flex h-screen w-screen overflow-hidden text-white bg-transparent relative z-10">
           {userData.error && (
             <div className="absolute top-4 right-4 z-50 bg-red-500/10 text-red-300 p-3 rounded-full border border-red-500/20 text-sm backdrop-blur-md">

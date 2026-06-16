@@ -81,7 +81,8 @@ const resources = {
         "scanApps": "Scan Running Apps",
         "scanning": "Scanning...",
         "scanTitle": "Running Processes",
-        "apply": "Apply Selected"
+        "apply": "Apply Selected",
+        "reportBug": "Report a Bug"
       },
       "socialScreen": {
         "communityFriends": "Community & Friends",
@@ -130,7 +131,17 @@ const resources = {
         "nickname": "Nickname",
         "processing": "Processing...",
         "createAccount": "Create account",
-        "nicknameInUse": "Nickname is already taken. Choose another."
+        "nicknameInUse": "Nickname is already taken. Choose another.",
+        "welcomeBack": "Welcome back",
+        "registerSubtitle": "Start earning your focus.",
+        "loginSubtitle": "Pick up where you left off.",
+        "forgotPassword": "Forgot password?",
+        "resetLinkSent": "Password reset link sent! Check your inbox.",
+        "verifyEmailTitle": "Verify your email",
+        "verifyEmailDesc": "We've sent a verification link to your email. You must click it before you can start using Focus.",
+        "resendEmail": "Resend verification email",
+        "refreshStatus": "I've verified my email",
+        "emailResent": "Verification email resent!"
       },
       "streakCelebration": {
         "dayStreak": "day streak",
@@ -227,7 +238,8 @@ const resources = {
         "scanApps": "Skenovat běžící aplikace",
         "scanning": "Skenuji...",
         "scanTitle": "Běžící procesy",
-        "apply": "Přidat vybrané"
+        "apply": "Přidat vybrané",
+        "reportBug": "Nahlásit chybu"
       },
       "socialScreen": {
         "communityFriends": "Komunita a Přátelé",
@@ -276,7 +288,17 @@ const resources = {
         "nickname": "Přezdívka",
         "processing": "Zpracovávám...",
         "createAccount": "Vytvořit účet",
-        "nicknameInUse": "Přezdívka už se používá. Zvol si jinou."
+        "nicknameInUse": "Přezdívka už se používá. Zvol si jinou.",
+        "welcomeBack": "Vítejte zpět",
+        "registerSubtitle": "Začni sbírat xp za soustředění.",
+        "loginSubtitle": "Pokračuj tam, kde jsi přestal.",
+        "forgotPassword": "Zapomněli jste heslo?",
+        "resetLinkSent": "Odkaz pro obnovu hesla odeslán! Zkontrolujte e-mail.",
+        "verifyEmailTitle": "Ověřte svůj e-mail",
+        "verifyEmailDesc": "Odeslali jsme vám ověřovací odkaz. Než začnete aplikaci používat, musíte e-mail potvrdit.",
+        "resendEmail": "Poslat e-mail znovu",
+        "refreshStatus": "Už jsem e-mail ověřil",
+        "emailResent": "Ověřovací e-mail byl znovu odeslán!"
       },
       "streakCelebration": {
         "dayStreak": "dní v řadě",

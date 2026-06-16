@@ -1,7 +1,7 @@
 {
 	"name": "focus",
 	"version": "1.0.0",
-	"description": "",
+	"description": "A gamified Pomodoro focus app with AI evaluation.",
 	"main": "main/main.js",
 	"scripts": {
 		"dev": "vite",
@@ -9,7 +9,8 @@
 		"start": "electron .",
 		"start:dev": "node scripts/dev.js",
 		"package:win": "npm run build && electron-builder --win",
-		"package:linux": "npm run build && electron-builder --linux"
+		"package:linux": "npm run build && electron-builder --linux",
+		"package:mac": "npm run build && electron-builder --mac"
 	},
 	"build": {
 		"appId": "com.focus.app",
@@ -31,6 +32,13 @@
 			"icon": "build/icon.png",
 			"category": "Utility"
 		},
+		"mac": {
+			"target": [
+				"dmg"
+			],
+			"icon": "build/icon.png",
+			"category": "public.app-category.productivity"
+		},
 		"nsis": {
 			"oneClick": false,
 			"allowToChangeInstallationDirectory": true
@@ -43,7 +51,7 @@
 		]
 	},
 	"keywords": [],
-	"author": "",
+	"author": "Dzejkop",
 	"license": "ISC",
 	"type": "commonjs",
 	"devDependencies": {
@@ -57,6 +65,7 @@
 	},
 	"dependencies": {
 		"dotenv": "^17.4.2",
+		"electron-updater": "^6.8.9",
 		"firebase": "^12.14.0",
 		"framer-motion": "^12.40.0",
 		"i18next": "^26.3.1",

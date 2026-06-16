@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, shell } = require('electron');
 const path = require('path');
 
 // Disable Vulkan for Linux/Wayland compatibility
@@ -108,6 +108,10 @@ app.whenReady().then(() => {
 
   ipcMain.handle('storage:save', (event, { data }) => {
     return saveData(data);
+  });
+
+  ipcMain.on('shell:openExternal', (event, { url }) => {
+    shell.openExternal(url);
   });
 
   app.on('activate', () => {

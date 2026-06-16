@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { auth, db } from '../firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, deleteUser } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, deleteUser, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
 import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { UserPlus, LogIn, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -15,6 +15,26 @@ function AuthScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [resetSent, setResetSent] = useState(false);
+
+  const handleResetPassword = async () => {
+    if (!email.trim()) {
+      setFieldErrors({ email: true });
+      setError(t('goalPlanner.requiredField'));
+      return;
+    }
+    try {
+      setLoading(true);
+      setError('');
+      await sendPasswordResetEmail(auth, email);
+      setResetSent(true);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || t('authScreen.connectionError'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,6 +79,9 @@ function AuthScreen() {
           friends: []
         });
 
+        // Send verification email
+        await sendEmailVerification(user);
+
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
@@ -96,6 +119,12 @@ function AuthScreen() {
         <div className="text-red-400/80 text-sm mb-6 flex items-start gap-2">
           <AlertCircle size={16} className="shrink-0 mt-0.5" /> 
           <span>{error}</span>
+        </div>
+      )}
+
+      {resetSent && (
+        <div className="text-green-400/80 text-sm mb-6 flex items-start gap-2 bg-green-500/10 p-3 rounded-xl border border-green-500/20">
+          <span>{t('authScreen.resetLinkSent')}</span>
         </div>
       )}
 
@@ -152,6 +181,19 @@ function AuthScreen() {
               </div>
             )}
           </div>
+          
+          {!isRegister && (
+            <div className="flex justify-end mt-2">
+              <button 
+                type="button" 
+                onClick={handleResetPassword}
+                disabled={loading}
+                className="text-xs text-gray-400 hover:text-white transition-colors"
+              >
+                {t('authScreen.forgotPassword')}
+              </button>
+            </div>
+          )}
         </div>
 
         <motion.button 

@@ -165,14 +165,31 @@ function Settings({ settings, onSave }) {
       </motion.div>
 
       {/* Save */}
-      <motion.button 
-        onClick={handleSave}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full shadow-[0_0_30px_rgba(139,92,246,0.25)] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] transition-shadow flex items-center gap-3 self-start"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
       >
-        <Save size={18} /> {t('settings.saveSettings')}
-      </motion.button>
+        <button 
+          type="button"
+          onClick={handleSave}
+          className="w-full bg-focus-primary hover:bg-focus-secondary text-white font-bold py-4 px-8 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all hover:shadow-[0_0_25px_rgba(236,72,153,0.4)] flex items-center justify-center gap-2"
+        >
+          <Save size={18} /> {t('settings.saveSettings')}
+        </button>
+
+        <button 
+          type="button"
+          onClick={() => {
+            if (window.api && window.api.shell) {
+              window.api.shell.openExternal("https://forms.gle/3VYLWJWVKNeSujxE7");
+            }
+          }}
+          className="w-full mt-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-semibold py-3 px-8 rounded-xl transition-all"
+        >
+          {t('settings.reportBug')}
+        </button>
+      </motion.div>
 
       {/* Scanner Modal */}
       <AnimatePresence>

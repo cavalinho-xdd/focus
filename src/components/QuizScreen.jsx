@@ -39,14 +39,19 @@ function QuizScreen({ quizData, apiKey, onSubmit }) {
     }));
 
     if (window.api && window.api.gemini && apiKey) {
-      const res = await window.api.gemini.evaluate(pairs, apiKey);
-      if (res.evaluation) {
-        setEvaluationResult(res.evaluation);
-      } else {
-        setEvaluationResult({ score: 0, feedback: t('quizScreen.apiError') });
+      try {
+        const res = await window.api.gemini.evaluate(pairs, apiKey);
+        if (res && res.evaluation) {
+          setEvaluationResult(res.evaluation);
+        } else {
+          setEvaluationResult({ score: 2, feedback: t('quizScreen.apiError') });
+        }
+      } catch (err) {
+        console.error("Evaluation fallback", err);
+        setEvaluationResult({ score: 2, feedback: t('quizScreen.fallbackApi') });
       }
     } else {
-      setEvaluationResult({ score: 5, feedback: t('quizScreen.fallbackApi') });
+      setEvaluationResult({ score: 2, feedback: t('quizScreen.fallbackApi') });
     }
     setIsEvaluating(false);
   };

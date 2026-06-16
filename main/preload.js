@@ -15,5 +15,8 @@ contextBridge.exposeInMainWorld('api', {
   },
   scanner: {
     getProcesses: () => ipcRenderer.invoke('scanner:getProcesses')
+  },
+  shell: {
+    openExternal: (url) => ipcRenderer.send('shell:openExternal', { url })
   }
 });
