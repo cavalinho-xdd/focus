@@ -9,7 +9,18 @@ permissions:
   contents: write
 
 jobs:
+  create-draft:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Draft Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: Focus App ${{ github.ref_name }}
+          generate_release_notes: true
+
   release:
+    needs: create-draft
     runs-on: ${{ matrix.os }}
     
     strategy:
