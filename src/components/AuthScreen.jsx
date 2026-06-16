@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { auth, db } from '../firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, deleteUser } from "firebase/auth";
-import { doc, setDoc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { UserPlus, LogIn, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -14,9 +14,22 @@ function AuthScreen() {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    const errors = {};
+    if (isRegister && !displayName.trim()) errors.displayName = true;
+    if (!email.trim()) errors.email = true;
+    if (!password.trim()) errors.password = true;
+    
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+    
     setError('');
     setLoading(true);
 
@@ -27,7 +40,6 @@ function AuthScreen() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Check uniqueness of nickname now that user is authenticated
         const usersRef = collection(db, "users");
         const q = query(usersRef, where("displayName", "==", displayName));
         const querySnapshot = await getDocs(q);
@@ -36,10 +48,8 @@ function AuthScreen() {
           throw new Error(t('authScreen.nicknameInUse'));
         }
         
-        // Nastavit jméno profilu Auth
         await updateProfile(user, { displayName });
         
-        // Založit záznam v databázi pro leaderboards atd.
         await setDoc(doc(db, "users", user.uid), {
           displayName,
           email,
@@ -64,46 +74,102 @@ function AuthScreen() {
 
   return (
     <motion.div 
-      className="panel" 
-      style={{ maxWidth: '400px', margin: '40px auto', width: '100%' }}
+      className="max-w-sm w-full mx-4" 
       initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
       animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-      transition={{ duration: 0.8, ease: 'easeOut' }}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
     >
-      <h2 style={{ textAlign: 'center', marginBottom: '24px', letterSpacing: '-0.02em' }}>
-        <span style={{ color: 'var(--secondary)' }}>Focus</span> Auth
+      {/* Branding */}
+      <div className="flex items-center gap-3 mb-12">
+        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary shadow-[0_0_15px_rgba(139,92,246,0.5)]" />
+        <span className="text-2xl font-bold tracking-tight">focus</span>
+      </div>
+
+      <h2 className="text-3xl font-bold tracking-tight mb-2 text-white">
+        {isRegister ? t('authScreen.createAccount', 'Create account') : t('authScreen.welcomeBack', 'Welcome back')}
       </h2>
+      <p className="text-gray-500 font-light mb-10">
+        {isRegister ? t('authScreen.registerSubtitle', 'Start earning your focus.') : t('authScreen.loginSubtitle', 'Pick up where you left off.')}
+      </p>
       
       {error && (
-        <div style={{ background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.3)', color: '#fda4af', padding: '12px', borderRadius: '12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-          <AlertCircle size={18} /> {error}
+        <div className="text-red-400/80 text-sm mb-6 flex items-start gap-2">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" /> 
+          <span>{error}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-5">
         {isRegister && (
-          <div className="mb-4">
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>{t('authScreen.nickname')}</label>
-            <input type="text" required value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Procrastinator123" />
+          <div>
+            <label className="block mb-2 text-sm text-gray-500 font-medium">{t('authScreen.nickname')}</label>
+            <div className="relative">
+              <input 
+                type="text" value={displayName} 
+                onChange={(e) => { setDisplayName(e.target.value); setFieldErrors(prev => ({...prev, displayName: false})) }} 
+                placeholder="Procrastinator123" 
+                className={`w-full bg-white/5 border ${fieldErrors.displayName ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none transition-colors`}
+              />
+              {fieldErrors.displayName && (
+                <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center gap-1.5 z-10">
+                  <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
+                  <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
+                </div>
+              )}
+            </div>
           </div>
         )}
-        <div className="mb-4">
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>{t('authScreen.email')}</label>
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="focus@example.com" />
+        <div>
+          <label className="block mb-2 text-sm text-gray-500 font-medium">{t('authScreen.email')}</label>
+          <div className="relative">
+            <input 
+              type="email" value={email} 
+              onChange={(e) => { setEmail(e.target.value); setFieldErrors(prev => ({...prev, email: false})) }} 
+              placeholder="focus@example.com" 
+              className={`w-full bg-white/5 border ${fieldErrors.email ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none transition-colors`}
+            />
+            {fieldErrors.email && (
+              <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center gap-1.5 z-10">
+                <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
+                <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
+              </div>
+            )}
+          </div>
         </div>
-        <div className="mb-4">
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>{t('authScreen.password')}</label>
-          <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" minLength="6" />
+        <div>
+          <label className="block mb-2 text-sm text-gray-500 font-medium">{t('authScreen.password')}</label>
+          <div className="relative">
+            <input 
+              type="password" value={password} 
+              onChange={(e) => { setPassword(e.target.value); setFieldErrors(prev => ({...prev, password: false})) }} 
+              placeholder="••••••••" minLength="6" 
+              className={`w-full bg-white/5 border ${fieldErrors.password ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none transition-colors`}
+            />
+            {fieldErrors.password && (
+              <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center gap-1.5 z-10">
+                <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
+                <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
+              </div>
+            )}
+          </div>
         </div>
 
-        <button type="submit" className="cta" disabled={loading} style={{ width: '100%', marginTop: '8px', padding: '14px' }}>
+        <motion.button 
+          type="submit" disabled={loading}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="mt-4 bg-focus-primary text-white font-bold py-4 px-6 rounded-full shadow-[0_0_30px_rgba(139,92,246,0.25)] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] disabled:opacity-50 disabled:hover:shadow-none transition-all flex justify-center items-center gap-2"
+        >
           {isRegister ? <UserPlus size={18} /> : <LogIn size={18} />}
           {loading ? t('authScreen.processing') : (isRegister ? t('authScreen.createAccount') : t('authScreen.login'))}
-        </button>
+        </motion.button>
       </form>
 
-      <div style={{ textAlign: 'center', marginTop: '24px' }}>
-        <button className="secondary" onClick={() => setIsRegister(!isRegister)} style={{ fontSize: '14px' }}>
+      <div className="text-center mt-8">
+        <button 
+          className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+          onClick={() => setIsRegister(!isRegister)}
+        >
           {isRegister ? t('authScreen.hasAccount') : t('authScreen.noAccount')}
         </button>
       </div>

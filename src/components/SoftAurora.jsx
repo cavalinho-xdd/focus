@@ -1,7 +1,5 @@
+import React, { useEffect, useRef } from 'react';
 import { Renderer, Program, Mesh, Triangle } from 'ogl';
-import { useEffect, useRef } from 'react';
-
-import './SoftAurora.css';
 
 function hexToVec3(hex) {
   const h = hex.replace('#', '');
@@ -23,7 +21,11 @@ void main() {
 `;
 
 const fragmentShader = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
+#else
+precision mediump float;
+#endif
 
 uniform float uTime;
 uniform vec3 uResolution;
@@ -175,10 +177,15 @@ export default function SoftAurora({
     let targetMouse = [0.5, 0.5];
 
     function handleMouseMove(e) {
+      const rect = gl.canvas.getBoundingClientRect();
       targetMouse = [
-        e.clientX / window.innerWidth,
-        1.0 - (e.clientY / window.innerHeight)
+        (e.clientX - rect.left) / rect.width,
+        1.0 - (e.clientY - rect.top) / rect.height
       ];
+    }
+
+    function handleMouseLeave() {
+      targetMouse = [0.5, 0.5];
     }
 
     function resize() {
@@ -220,6 +227,7 @@ export default function SoftAurora({
 
     if (enableMouseInteraction) {
       window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseleave', handleMouseLeave);
     }
 
     let animationFrameId;
@@ -247,11 +255,12 @@ export default function SoftAurora({
       window.removeEventListener('resize', resize);
       if (enableMouseInteraction) {
         window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseleave', handleMouseLeave);
       }
       container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, [speed, scale, brightness, color1, color2, noiseFrequency, noiseAmplitude, bandHeight, bandSpread, octaveDecay, layerOffset, colorSpeed, enableMouseInteraction, mouseInfluence]);
 
-  return <div ref={containerRef} className="soft-aurora-container" />;
+  return <div ref={containerRef} className="w-full h-full pointer-events-none" />;
 }

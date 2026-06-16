@@ -21,7 +21,8 @@ const resources = {
         "totalMinutes": "Total Minutes",
         "completedGoals": "Completed Goals",
         "level": "Level",
-        "xp": "Experience (XP)"
+        "xp": "Experience (XP)",
+        "streak": "Streak"
       },
       "goalPlanner": {
         "title": "Start a Focus Session",
@@ -34,7 +35,14 @@ const resources = {
         "hardcoreWarningTitle": "Warning: Hardcore Mode",
         "hardcoreWarningDesc": "You will not be able to close the app or cancel the focus block until the time runs out. Are you sure you want to proceed?",
         "hardcoreAccept": "I understand, start",
-        "usePomodoro": "Use Pomodoro (25m Focus / 5m Break)"
+        "usePomodoro": "Use Pomodoro",
+        "pomodoroFocus": "Focus (min)",
+        "pomodoroBreak": "Break (min)",
+        "requiredField": "Please fill out this field.",
+        "noApiTitle": "No API Key",
+        "noApiDesc": "You haven't set up your Gemini API key. You can still use the timer, but you won't get AI evaluation and you'll only earn 20 XP.",
+        "continueWithoutApi": "Continue without AI",
+        "cancel": "Cancel"
       },
       "timerScreen": {
         "focusingOn": "Focusing on",
@@ -89,6 +97,7 @@ const resources = {
         "you": "(You)",
         "empty": "No one is here yet.",
         "communityTitle": "Community & Leaderboards",
+        "subtitle": "Compete with friends. Climb the ranks.",
         "globalTop20": "Global Top 20",
         "friends": "Friends",
         "add": "Add",
@@ -100,7 +109,10 @@ const resources = {
         "deny": "Deny",
         "inviteSent": "Invite sent!",
         "noRequests": "No pending requests.",
-        "requestsTitle": "Friend Requests"
+        "requestsTitle": "Friend Requests",
+        "goals": "Goals",
+        "focusTime": "Focus Time",
+        "streak": "Streak"
       },
       "authScreen": {
         "loginSignup": "Login / Register",
@@ -119,6 +131,25 @@ const resources = {
         "processing": "Processing...",
         "createAccount": "Create account",
         "nicknameInUse": "Nickname is already taken. Choose another."
+      },
+      "streakCelebration": {
+        "dayStreak": "day streak",
+        "tapToContinue": "tap to continue",
+        "streakKeepItUp": "Keep it up!",
+        "streakNewRecord": "New Record!",
+        "streakDay": "Day",
+        "streakDays": "Days",
+        "xpEarned": "XP Earned",
+        "xpMessage": "You're getting stronger. Keep going.",
+        "continue": "Continue to Dashboard",
+        "noApiEarnMore": "Use AI Evaluation to earn more XP.",
+        "labels": {
+          "spark": "Spark",
+          "burning": "Burning",
+          "blazing": "Blazing",
+          "inferno": "Inferno",
+          "legendary": "Legendary"
+        }
       }
     }
   },
@@ -141,7 +172,8 @@ const resources = {
         "totalMinutes": "Celkem minut",
         "completedGoals": "Splněné cíle",
         "level": "Level",
-        "xp": "Zkušenosti (XP)"
+        "xp": "Zkušenosti (XP)",
+        "streak": "Série"
       },
       "goalPlanner": {
         "title": "Začít Focus Blok",
@@ -154,7 +186,11 @@ const resources = {
         "hardcoreWarningTitle": "Varování: Hardcore Mód",
         "hardcoreWarningDesc": "Aplikaci nebude možné nijak zavřít ani zrušit odpočet, dokud čas nevyprší. Opravdu chceš pokračovat?",
         "hardcoreAccept": "Rozumím, spustit",
-        "usePomodoro": "Použít Pomodoro (25m Práce / 5m Pauza)"
+        "usePomodoro": "Použít Pomodoro",
+        "pomodoroFocus": "Soustředění (min)",
+        "pomodoroBreak": "Pauza (min)",
+        "requiredField": "Vyplňte prosím toto pole.",
+        "cancel": "Zrušit"
       },
       "timerScreen": {
         "focus": "Focus",
@@ -207,6 +243,7 @@ const resources = {
         "you": "(Ty)",
         "empty": "Zatím tu nikdo není.",
         "communityTitle": "Komunita a Žebříčky",
+        "subtitle": "Soutěž s přáteli. Stoupej v žebříčku.",
         "globalTop20": "Globální Top 20",
         "friends": "Přátelé",
         "add": "Přidat",
@@ -218,7 +255,10 @@ const resources = {
         "deny": "Odmítnout",
         "inviteSent": "Pozvánka odeslána!",
         "noRequests": "Žádné nevyřízené žádosti.",
-        "requestsTitle": "Žádosti o přátelství"
+        "requestsTitle": "Žádosti o přátelství",
+        "goals": "Cíle",
+        "focusTime": "Čas soustředění",
+        "streak": "Série"
       },
       "authScreen": {
         "loginSignup": "Přihlášení / Registrace",
@@ -237,6 +277,28 @@ const resources = {
         "processing": "Zpracovávám...",
         "createAccount": "Vytvořit účet",
         "nicknameInUse": "Přezdívka už se používá. Zvol si jinou."
+      },
+      "streakCelebration": {
+        "dayStreak": "dní v řadě",
+        "tapToContinue": "klepněte pro pokračování",
+        "streakKeepItUp": "Skvělá práce!",
+        "streakNewRecord": "Nový rekord!",
+        "streakDay": "Den",
+        "streakDays": "Dny",
+        "xpEarned": "XP Získáno",
+        "xpMessage": "Zlepšuješ se. Jen tak dál.",
+        "continue": "Zpět na Dashboard",
+        "noApiEarnMore": "Pro získávání více XP používejte AI Evaluation.",
+        "noApiTitle": "Chybí API Klíč",
+        "noApiDesc": "Nemáš nastavený Gemini API klíč. Můžeš pokračovat s timerem, ale bez AI evaluace získáš jen 20 XP.",
+        "continueWithoutApi": "Pokračovat bez AI",
+        "labels": {
+          "spark": "Jiskra",
+          "burning": "Hořící",
+          "blazing": "Planoucí",
+          "inferno": "Peklo",
+          "legendary": "Legenda"
+        }
       }
     }
   }

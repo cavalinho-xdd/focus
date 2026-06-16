@@ -1,17 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { db, auth } from '../firebase';
 import { collection, query, orderBy, limit, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, where } from 'firebase/firestore';
-import { Trophy, Users, Search, Plus } from 'lucide-react';
+import { Trophy, Users, Search, Plus, X, Clock, Flame, Target } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function SocialScreen() {
   const { t } = useTranslation();
-  const [tab, setTab] = useState('GLOBAL'); // GLOBAL, FRIENDS, ADD
+  const [tab, setTab] = useState('GLOBAL');
   const [globalLeaderboard, setGlobalLeaderboard] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const formatTime = (minutes) => {
+    if (!minutes) return "0m";
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+  };
   const [friendsLeaderboard, setFriendsLeaderboard] = useState([]);
   const [requestsList, setRequestsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchName, setSearchName] = useState('');
+  const [searchError, setSearchError] = useState(false);
   const [searchResult, setSearchResult] = useState(null);
   const [friendStatus, setFriendStatus] = useState(null);
 
@@ -28,34 +40,33 @@ function SocialScreen() {
         const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setGlobalLeaderboard(data);
       } else if (tab === 'FRIENDS' || tab === 'REQUESTS') {
-        // Nejprve nacteme vlastni profil abychom zjistili seznam pratel
         const myDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
-        if (myDoc.exists()) {
-          const myData = myDoc.data();
-          const friendIds = myData.friends || [];
-          const requestIds = myData.friendRequests || [];
+        const myData = myDoc.exists() ? myDoc.data() : {};
+        const friendIds = myData.friends || [];
+        const ignoredIds = myData.ignoredRequests || [];
+        
+        if (tab === 'FRIENDS') {
+          const qMe = query(collection(db, "users"), where("friends", "array-contains", auth.currentUser.uid));
+          const snapMe = await getDocs(qMe);
+          const peopleWhoFriendedMe = snapMe.docs.map(d => d.id);
           
-          if (tab === 'FRIENDS') {
-            if (friendIds.length === 0) {
-              setFriendsLeaderboard([ { id: auth.currentUser.uid, ...myData } ]); // Jen já
-            } else {
-              const q = query(collection(db, "users"), orderBy("xp", "desc"), limit(50));
-              const snap = await getDocs(q);
-              const allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-              const filtered = allData.filter(u => friendIds.includes(u.id) || u.id === auth.currentUser.uid);
-              setFriendsLeaderboard(filtered);
-            }
-          } else if (tab === 'REQUESTS') {
-            if (requestIds.length === 0) {
-              setRequestsList([]);
-            } else {
-              const q = query(collection(db, "users"), orderBy("xp", "desc"), limit(50));
-              const snap = await getDocs(q);
-              const allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-              const filtered = allData.filter(u => requestIds.includes(u.id));
-              setRequestsList(filtered);
-            }
+          const allFriendIds = [...new Set([...friendIds, ...peopleWhoFriendedMe])];
+          
+          if (allFriendIds.length === 0) {
+            setFriendsLeaderboard([ { id: auth.currentUser.uid, ...myData } ]); 
+          } else {
+            const idsToFetch = [...new Set([auth.currentUser.uid, ...allFriendIds])];
+            const docs = await Promise.all(idsToFetch.map(id => getDoc(doc(db, "users", id))));
+            const friendsData = docs.filter(d => d.exists()).map(d => ({ id: d.id, ...d.data() }));
+            friendsData.sort((a, b) => (b.xp || 0) - (a.xp || 0));
+            setFriendsLeaderboard(friendsData);
           }
+        } else if (tab === 'REQUESTS') {
+          const q = query(collection(db, "users"), where("outgoingRequests", "array-contains", auth.currentUser.uid));
+          const snap = await getDocs(q);
+          const pending = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const filtered = pending.filter(u => !ignoredIds.includes(u.id) && !friendIds.includes(u.id));
+          setRequestsList(filtered);
         }
       }
     } catch (e) {
@@ -66,7 +77,11 @@ function SocialScreen() {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!searchName) return;
+    if (!searchName.trim()) {
+      setSearchError(true);
+      return;
+    }
+    setSearchError(false);
     setLoading(true);
     setFriendStatus(null);
     try {
@@ -91,9 +106,9 @@ function SocialScreen() {
 
   const handleAddFriend = async (friendId) => {
     try {
-      const friendRef = doc(db, "users", friendId);
-      await updateDoc(friendRef, {
-        friendRequests: arrayUnion(auth.currentUser.uid)
+      const myRef = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(myRef, {
+        outgoingRequests: arrayUnion(friendId)
       });
       setFriendStatus('SUCCESS');
       setSearchResult(null);
@@ -108,13 +123,8 @@ function SocialScreen() {
   const handleApproveRequest = async (friendId) => {
     try {
       const myRef = doc(db, "users", auth.currentUser.uid);
-      const friendRef = doc(db, "users", friendId);
       await updateDoc(myRef, {
-        friends: arrayUnion(friendId),
-        friendRequests: arrayRemove(friendId)
-      });
-      await updateDoc(friendRef, {
-        friends: arrayUnion(auth.currentUser.uid)
+        friends: arrayUnion(friendId)
       });
       setRequestsList(prev => prev.filter(u => u.id !== friendId));
     } catch(e) {
@@ -126,7 +136,7 @@ function SocialScreen() {
     try {
       const myRef = doc(db, "users", auth.currentUser.uid);
       await updateDoc(myRef, {
-        friendRequests: arrayRemove(friendId)
+        ignoredRequests: arrayUnion(friendId)
       });
       setRequestsList(prev => prev.filter(u => u.id !== friendId));
     } catch(e) {
@@ -135,105 +145,251 @@ function SocialScreen() {
   };
 
   const renderTable = (data) => (
-    <div style={{ marginTop: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '12px' }}>
+    <div className="mt-8 flex flex-col">
       {data.map((user, i) => (
-        <div key={user.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderBottom: '1px solid var(--border-color)', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <span style={{ fontSize: '18px', fontWeight: 'bold', width: '20px', color: i < 3 ? 'var(--secondary)' : 'var(--text-muted)' }}>{i + 1}.</span>
-            <span style={{ fontWeight: user.id === auth.currentUser.uid ? 'bold' : 'normal', color: user.id === auth.currentUser.uid ? 'var(--text-main)' : 'var(--text-muted)' }}>
-              {user.displayName || t('socialScreen.anonymous')} {user.id === auth.currentUser.uid && t('socialScreen.you')}
-            </span>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontWeight: 'bold' }}>Lvl {user.level}</div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user.xp} XP</div>
+        <div key={user.id} className="relative group border-b border-white/5 last:border-0">
+          {/* Beautiful detached hover pill inside the row */}
+          <div className="absolute inset-1 bg-white/[0.06] rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none scale-[0.98] group-hover:scale-100 shadow-[0_4px_20px_rgba(0,0,0,0.1)]" />
+          
+          {/* Row Content */}
+          <div 
+            onClick={() => setSelectedUser(user)}
+            className="relative flex justify-between items-center py-4 px-5 cursor-pointer z-10"
+          >
+            <div className="flex items-center gap-5">
+              <span className={`w-6 text-center text-sm font-bold ${i < 3 ? 'text-focus-secondary' : 'text-gray-600'}`}>{i + 1}</span>
+              <span className={`font-medium ${user.id === auth.currentUser.uid ? 'text-white' : 'text-gray-400'}`}>
+                {user.displayName || t('socialScreen.anonymous')}
+                {user.id === auth.currentUser.uid && <span className="text-gray-600 text-xs ml-2">{t('socialScreen.you')}</span>}
+              </span>
+            </div>
+            <div className="text-right flex items-center gap-6">
+
+            {user.streak > 0 && (
+              <div className="flex items-center gap-1.5 opacity-80" title={`${user.streak} day streak`}>
+                <svg width="14" height="16" viewBox="0 0 100 100" className="drop-shadow-[0_0_4px_rgba(139,92,246,0.5)]">
+                  <path d="M50 10 C50 10 20 45 20 70 A30 30 0 0 0 80 70 C80 45 50 10 50 10 Z" fill="#8B5CF6" />
+                  <path d="M50 35 C50 35 35 55 35 70 A15 15 0 0 0 65 70 C65 55 50 35 50 35 Z" fill="#F472B6" />
+                </svg>
+                <span className="text-white font-bold text-xs">{user.streak}</span>
+              </div>
+            )}
+              <span className="text-white font-bold text-sm">{t('app.level')} {user.level}</span>
+              <span className="text-focus-primary text-xs font-medium w-16 text-right">{user.xp} XP</span>
+            </div>
           </div>
         </div>
       ))}
-      {data.length === 0 && !loading && <div style={{ padding: '20px', textAlign: 'center' }}>{t('socialScreen.empty')}</div>}
+      {data.length === 0 && !loading && <div className="py-12 text-center text-gray-600">{t('socialScreen.empty')}</div>}
     </div>
   );
 
   const renderRequests = (data) => (
-    <div style={{ marginTop: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '12px' }}>
-      {data.map((user, i) => (
-        <div key={user.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderBottom: '1px solid var(--border-color)', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <span style={{ fontWeight: 'bold' }}>
-              {user.displayName || t('socialScreen.anonymous')}
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="cta" onClick={() => handleApproveRequest(user.id)} style={{ padding: '6px 12px', fontSize: '14px' }}>{t('socialScreen.approve')}</button>
-            <button className="secondary" onClick={() => handleDenyRequest(user.id)} style={{ padding: '6px 12px', fontSize: '14px' }}>{t('socialScreen.deny')}</button>
+    <div className="mt-8">
+      {data.map((user) => (
+        <div key={user.id} className="flex justify-between items-center py-4 border-b border-white/5 last:border-0">
+          <span className="font-medium text-white">{user.displayName || t('socialScreen.anonymous')}</span>
+          <div className="flex gap-2">
+            <button 
+              className="px-4 py-2 rounded-full bg-focus-primary text-white text-xs font-bold transition-colors hover:bg-focus-secondary" 
+              onClick={() => handleApproveRequest(user.id)}
+            >
+              {t('socialScreen.approve')}
+            </button>
+            <button 
+              className="px-4 py-2 rounded-full bg-white/5 text-gray-400 text-xs font-medium hover:bg-white/10 transition-colors" 
+              onClick={() => handleDenyRequest(user.id)}
+            >
+              {t('socialScreen.deny')}
+            </button>
           </div>
         </div>
       ))}
-      {data.length === 0 && !loading && <div style={{ padding: '20px', textAlign: 'center' }}>{t('socialScreen.noRequests')}</div>}
+      {data.length === 0 && !loading && <div className="py-12 text-center text-gray-600">{t('socialScreen.noRequests')}</div>}
     </div>
   );
 
   return (
-    <div className="panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <h3 className="mb-4" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Trophy size={20} /> {t('socialScreen.communityTitle')}</h3>
+    <div className="flex-1 flex flex-col">
+      {/* Header — flat, like web section headings */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 flex items-center gap-4">
+          <Trophy size={28} className="text-focus-primary" /> {t('socialScreen.communityTitle')}
+        </h1>
+        <p className="text-gray-500 font-light text-lg mb-8">{t('socialScreen.subtitle')}</p>
+      </motion.div>
       
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        <button className={tab === 'GLOBAL' ? 'primary' : 'secondary'} onClick={() => setTab('GLOBAL')}>
-          {t('socialScreen.globalTop20')}
-        </button>
-        <button className={tab === 'FRIENDS' ? 'primary' : 'secondary'} onClick={() => setTab('FRIENDS')}>
-          <Users size={16} /> {t('socialScreen.friends')}
-        </button>
-        <button className={tab === 'REQUESTS' ? 'primary' : 'secondary'} onClick={() => setTab('REQUESTS')}>
-          <Users size={16} /> {t('socialScreen.requests')}
-        </button>
-        <button className={tab === 'ADD' ? 'primary' : 'secondary'} onClick={() => setTab('ADD')}>
-          <Plus size={16} /> {t('socialScreen.add')}
-        </button>
+      {/* Tab pills */}
+      <div className="flex gap-2 mb-2">
+        {[
+          { id: 'GLOBAL', label: t('socialScreen.globalTop20') },
+          { id: 'FRIENDS', label: t('socialScreen.friends'), icon: Users },
+          { id: 'REQUESTS', label: t('socialScreen.requests') },
+          { id: 'ADD', label: t('socialScreen.add'), icon: Plus },
+        ].map(item => (
+          <button 
+            key={item.id}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+              tab === item.id 
+                ? 'bg-white/10 text-white border-white/15' 
+                : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'
+            }`} 
+            onClick={() => setTab(item.id)}
+          >
+            <span className="flex items-center gap-2">
+              {item.icon && <item.icon size={14} />}
+              {item.label}
+            </span>
+          </button>
+        ))}
       </div>
 
-      <div style={{ flexGrow: 1, overflowY: 'auto' }}>
-        {loading && <div className="flex-center" style={{ height: '100px' }}>{t('socialScreen.loading')}</div>}
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        {loading && (
+          <div className="h-32 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full border-2 border-focus-primary border-t-transparent animate-spin" />
+          </div>
+        )}
         
         {!loading && tab === 'GLOBAL' && renderTable(globalLeaderboard)}
         {!loading && tab === 'FRIENDS' && renderTable(friendsLeaderboard)}
         {!loading && tab === 'REQUESTS' && renderRequests(requestsList)}
         
         {!loading && tab === 'ADD' && (
-          <div style={{ marginTop: '16px' }}>
-            <p className="text-muted mb-4" style={{ fontSize: '14px' }}>{t('socialScreen.addFriendInstruction')}</p>
-            <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px' }}>
-              <input type="text" value={searchName} onChange={(e) => setSearchName(e.target.value)} placeholder={t('socialScreen.friendEmailPlaceholder')} style={{ marginBottom: 0 }} required />
-              <button type="submit" className="primary"><Search size={18} /></button>
+          <div className="mt-8 max-w-lg">
+            <p className="text-gray-500 mb-4 text-sm font-light">{t('socialScreen.addFriendInstruction')}</p>
+            <form noValidate onSubmit={handleSearch} className="flex gap-3">
+              <div className="relative flex-1">
+                <input 
+                  type="text" 
+                  value={searchName} 
+                  onChange={(e) => { setSearchName(e.target.value); setSearchError(false); }} 
+                  placeholder={t('socialScreen.friendEmailPlaceholder')} 
+                  className={`w-full bg-white/5 border ${searchError ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none transition-colors`}
+                />
+                <AnimatePresence>
+                  {searchError && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }} 
+                      animate={{ opacity: 1, y: 0, scale: 1 }} 
+                      exit={{ opacity: 0, scale: 0.95 }} 
+                      className="absolute -top-12 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center gap-1.5 z-10 whitespace-nowrap"
+                    >
+                      <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
+                      <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <button 
+                type="submit" 
+                className="bg-focus-primary hover:bg-focus-secondary text-white px-5 rounded-full transition-colors flex items-center justify-center"
+              >
+                <Search size={18} />
+              </button>
             </form>
 
             {friendStatus === 'SUCCESS' && (
-              <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#4ade80', padding: '12px', borderRadius: '12px', marginTop: '16px', fontSize: '14px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
-                {t('socialScreen.inviteSent')}
+              <div className="text-green-400 text-sm mt-6 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-400" /> {t('socialScreen.inviteSent')}
               </div>
             )}
             {friendStatus === 'ERROR' && (
-              <div style={{ background: 'rgba(244, 63, 94, 0.1)', color: '#fda4af', padding: '12px', borderRadius: '12px', marginTop: '16px', fontSize: '14px', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
-                {t('socialScreen.addError')}
+              <div className="text-red-400 text-sm mt-6 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-400" /> {t('socialScreen.addError')}
               </div>
             )}
 
-            {searchResult === 'NOT_FOUND' && <div className="mt-4 text-muted">{t('socialScreen.userNotFound')}</div>}
+            {searchResult === 'NOT_FOUND' && <div className="mt-6 text-gray-600">{t('socialScreen.userNotFound')}</div>}
             
             {searchResult && searchResult !== 'NOT_FOUND' && (
-              <div className="mt-4 p-4 panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="mt-6 py-4 flex justify-between items-center border-b border-white/5">
                 <div>
-                  <div style={{ fontWeight: 'bold' }}>{searchResult.displayName}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Lvl {searchResult.level}</div>
+                  <div className="font-bold text-white">{searchResult.displayName}</div>
+                  <div className="text-xs text-focus-primary font-medium mt-1">{t('app.level')} {searchResult.level}</div>
                 </div>
-                <button className="cta" onClick={() => handleAddFriend(searchResult.id)} style={{ padding: '8px 12px' }}>
-                  <Plus size={16} /> {t('socialScreen.add')}
-                </button>
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-focus-primary text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(139,92,246,0.2)]" 
+                  onClick={() => handleAddFriend(searchResult.id)}
+                >
+                  <Plus size={14} /> {t('socialScreen.add')}
+                </motion.button>
               </div>
             )}
           </div>
         )}
       </div>
+
+      {/* User Profile Modal */}
+      {createPortal(
+        <AnimatePresence>
+          {selectedUser && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSelectedUser(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-[#0B0A15] border border-white/10 rounded-3xl p-8 max-w-sm w-full relative shadow-2xl"
+            >
+              <button 
+                onClick={() => setSelectedUser(null)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors p-2"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex flex-col items-center mt-4">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.3)] mb-4">
+                  <span className="text-3xl font-black text-white">
+                    {(selectedUser.displayName || 'A').charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <h3 className="text-2xl font-black text-white">{selectedUser.displayName || t('socialScreen.anonymous')}</h3>
+                {selectedUser.id === auth.currentUser?.uid && (
+                  <span className="bg-white/10 text-gray-300 text-xs px-2 py-0.5 rounded-full mt-2 uppercase tracking-widest">{t('socialScreen.you')}</span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-8">
+                <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
+                  <Trophy size={20} className="text-focus-primary mb-2 opacity-80" />
+                  <span className="text-2xl font-bold text-white leading-none mb-1">{selectedUser.level}</span>
+                  <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('dashboard.level')}</span>
+                </div>
+                <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
+                  <Target size={20} className="text-focus-secondary mb-2 opacity-80" />
+                  <span className="text-2xl font-bold text-white leading-none mb-1">{selectedUser.goalsCompleted || 0}</span>
+                  <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('socialScreen.goals')}</span>
+                </div>
+                <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
+                  <Flame size={20} className="text-focus-primary mb-2 opacity-80" />
+                  <span className="text-2xl font-bold text-white leading-none mb-1">{selectedUser.streak || 0}</span>
+                  <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('socialScreen.streak')}</span>
+                </div>
+                <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
+                  <Clock size={20} className="text-focus-secondary mb-2 opacity-80" />
+                  <span className="text-2xl font-bold text-white leading-none mb-1">{formatTime(selectedUser.totalFocusMinutes)}</span>
+                  <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('socialScreen.focusTime')}</span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>, document.body)}
     </div>
   );
 }

@@ -1,66 +1,93 @@
 import React from 'react';
-import { Target, Zap, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20, filter: 'blur(10px)' },
-  show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { type: 'spring', bounce: 0.4 } }
-};
-
-function Dashboard({ stats }) {
+function Dashboard({ stats, userName }) {
   const { t } = useTranslation();
   const progressPercent = (stats.xp / (stats.level * 100)) * 100;
 
+  // Time-based greeting
+  const hour = new Date().getHours();
+  let greeting;
+  if (hour < 12) greeting = t('dashboard.goodMorning', { fallbackLng: 'en' });
+  else if (hour < 18) greeting = t('dashboard.goodAfternoon', { fallbackLng: 'en' });
+  else greeting = t('dashboard.goodEvening', { fallbackLng: 'en' });
+
+  // Fallback if i18n keys missing
+  if (!greeting || greeting.includes('dashboard.good')) {
+    if (hour < 12) greeting = 'Good morning';
+    else if (hour < 18) greeting = 'Good afternoon';
+    else greeting = 'Good evening';
+  }
+
+  const displayName = userName || 'Focuser';
+
   return (
-    <div className="mb-4">
-      <h3 className="mb-4 text-muted">{t('dashboard.overview')}</h3>
-      <motion.div variants={containerVariants} initial="hidden" animate="show">
-        <motion.div className="panel mb-4" variants={itemVariants} style={{ padding: '32px' }}>
-          
-          <h2 className="text-gradient" style={{ marginBottom: '24px', fontSize: '28px', fontWeight: '800' }}>{t('dashboard.title')}</h2>
-          
-          <div className="card-grid" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '32px' }}>
-            
-            <div className="card" style={{ background: 'rgba(139, 92, 246, 0.05)', border: '1px solid rgba(139, 92, 246, 0.2)', padding: '20px', borderRadius: '16px', minWidth: '150px' }}>
-              <p className="text-muted" style={{ marginBottom: '12px', fontSize: '14px', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('dashboard.level')}</p>
-              <div style={{ fontSize: '48px', fontWeight: '800', lineHeight: 1 }} className="text-gradient">
-                {stats.level}
-              </div>
-            </div>
+    <div>
+      {/* Hero greeting — like the web's big headings */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight mb-2">
+          {greeting}, <span className="text-gradient">{displayName}</span>.
+        </h1>
+        <p className="text-lg text-gray-500 font-light">
+          {t('dashboard.subtitle', 'Here\'s your progress so far.')}
+        </p>
+      </motion.div>
 
-            <div style={{ flex: 1 }}>
-              <div className="text-muted" style={{ fontSize: '14px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
-                <span>{t('dashboard.xp')}</span>
-                <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{progressPercent.toFixed(0)}%</span>
-              </div>
-              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '12px', lineHeight: '1' }}>{stats.xp}</div>
-              <div style={{ height: '8px', background: 'rgba(0,0,0,0.4)', borderRadius: '4px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ 
-                  width: `${progressPercent}%`, 
-                  height: '100%', 
-                  background: 'linear-gradient(90deg, var(--primary), var(--cta))',
-                  boxShadow: '0 0 10px var(--primary)',
-                  transition: 'width 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
-                }}></div>
-              </div>
-            </div>
-
-            <div style={{ minWidth: '120px', textAlign: 'right' }}>
-              <div className="text-muted" style={{ fontSize: '14px', marginBottom: '8px' }}>{t('dashboard.completedGoals')}</div>
-              <div style={{ fontSize: '48px', fontWeight: 'bold', lineHeight: '1' }}>{stats.goalsCompleted}</div>
-            </div>
-
+      {/* Stats row — flat, no card wrapper, just content breathing on the dark bg */}
+      <motion.div 
+        className="flex items-end gap-16 mt-12 pb-12 border-b border-white/5"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {/* Level */}
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-[0.2em] mb-2">{t('dashboard.level')}</p>
+          <div className="text-6xl font-black text-white leading-none tracking-tighter">
+            {stats.level}
           </div>
-        </motion.div>
+        </div>
+
+        {/* Streak */}
+        {stats.streak > 0 && (
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-[0.2em] mb-2">{t('dashboard.streak')}</p>
+            <div className="flex items-end gap-2">
+              <div className="text-5xl font-bold text-white leading-none tracking-tighter">{stats.streak}</div>
+              <svg width="24" height="28" viewBox="0 0 120 130" className="mb-1 opacity-80">
+                <path d="M60,125 C85,125 105,100 105,70 C105,35 65,-5 65,-5 C65,-5 75,30 55,50 C45,60 30,65 25,85 C20,105 40,125 60,125 Z" fill="#8B5CF6" opacity="0.9" />
+                <path d="M60,120 C80,120 95,98 95,72 C95,45 65,10 65,10 C65,10 72,38 55,55 C48,62 35,68 32,85 C28,102 45,120 60,120 Z" fill="#EC4899" opacity="0.5" />
+              </svg>
+            </div>
+          </div>
+        )}
+
+        {/* XP Progress */}
+        <div className="flex-1">
+          <div className="flex justify-between items-end mb-3">
+            <span className="text-xs text-gray-500 uppercase tracking-[0.2em]">{t('dashboard.xp')}</span>
+            <span className="text-sm text-gray-400 font-medium">{stats.xp} / {stats.level * 100}</span>
+          </div>
+          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <motion.div 
+              className="h-full bg-gradient-to-r from-focus-primary to-focus-secondary"
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            />
+          </div>
+        </div>
+
+        {/* Goals Completed */}
+        <div className="text-right">
+          <p className="text-xs text-gray-500 uppercase tracking-[0.2em] mb-2">{t('dashboard.completedGoals')}</p>
+          <div className="text-5xl font-bold text-white leading-none tracking-tighter">{stats.goalsCompleted}</div>
+        </div>
       </motion.div>
     </div>
   );

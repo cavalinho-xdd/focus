@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { XSquare, Shield } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 
-function TimerScreen({ minutes, topic, isHardcore, usePomodoro, onComplete, onAbort, onPhaseChange }) {
+function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 25, pomodoroBreak = 5, onComplete, onAbort, onPhaseChange }) {
   const { t } = useTranslation();
   const [timeLeft, setTimeLeft] = useState(minutes * 60);
   
-  const POMODORO_FOCUS_SEC = 25 * 60;
-  const POMODORO_BREAK_SEC = 5 * 60;
+  const POMODORO_FOCUS_SEC = pomodoroFocus * 60;
+  const POMODORO_BREAK_SEC = pomodoroBreak * 60;
   
   const [phase, setPhase] = useState('FOCUS');
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(usePomodoro ? Math.min(POMODORO_FOCUS_SEC, minutes * 60) : minutes * 60);
@@ -59,78 +60,76 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, onComplete, onAb
   const totalDuration = usePomodoro ? (phase === 'FOCUS' ? POMODORO_FOCUS_SEC : POMODORO_BREAK_SEC) : (minutes * 60);
   const strokeDashoffset = circumference - (Math.min(progressTime, totalDuration) / totalDuration) * circumference;
 
-  const colorPrimary = phase === 'FOCUS' ? '#8B5CF6' : '#10B981';
-  const colorCta = phase === 'FOCUS' ? '#EC4899' : '#34D399';
-
   return (
-    <div className="glass-panel flex-center" style={{ flexDirection: 'column', height: '100%', position: 'relative' }}>
-      <h3 className="text-muted" style={{ marginBottom: '40px', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '14px' }}>
-        {t('timerScreen.focusTopic', { topic })}
-      </h3>
+    <div className="w-full max-w-xl mx-auto flex flex-col items-center justify-center">
+      {/* Topic */}
+      <motion.p 
+        className="text-gray-500 text-sm tracking-[0.2em] uppercase mb-12 font-medium"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        {topic}
+      </motion.p>
       
-      <div style={{ position: 'relative', width: '280px', height: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="280" height="280" viewBox="0 0 280 280" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="140" cy="140" r="120" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+      {/* Timer Circle — minimal, no card */}
+      <motion.div 
+        className="relative w-[280px] h-[280px] flex items-center justify-center"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <svg width="280" height="280" viewBox="0 0 280 280" className="-rotate-90">
+          <circle cx="140" cy="140" r="120" fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="2" />
           <circle 
             cx="140" cy="140" r="120" 
             fill="transparent" 
-            stroke={`url(#gradient-${phase})`} 
-            strokeWidth="8" 
+            stroke="url(#timer-gradient)" 
+            strokeWidth="3" 
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
-            style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.5s ease' }}
+            className="transition-all duration-1000 ease-linear"
           />
           <defs>
-            <linearGradient id={`gradient-${phase}`} x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor={colorPrimary} />
-              <stop offset="100%" stopColor={colorCta} />
+            <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={phase === 'FOCUS' ? '#8B5CF6' : '#10B981'} />
+              <stop offset="100%" stopColor={phase === 'FOCUS' ? '#EC4899' : '#34D399'} />
             </linearGradient>
           </defs>
         </svg>
         
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
           {usePomodoro && (
-            <div style={{ fontSize: '14px', fontWeight: 'bold', color: colorCta, letterSpacing: '2px', marginBottom: '8px' }}>
+            <span className={`text-xs font-bold tracking-[0.3em] uppercase mb-2 ${phase === 'FOCUS' ? 'text-focus-primary' : 'text-green-400'}`}>
               {phase === 'FOCUS' ? t('timerScreen.phaseFocus') : t('timerScreen.phaseBreak')}
-            </div>
+            </span>
           )}
-          <div style={{ fontSize: '64px', fontWeight: '800', lineHeight: '1', fontFamily: 'monospace' }}>
+          <div className="text-7xl font-black tracking-tight text-white leading-none" style={{ fontVariantNumeric: 'tabular-nums' }}>
             {m}:{s}
           </div>
-          {!usePomodoro && (
-            <div className="text-muted" style={{ fontSize: '14px', marginTop: '8px' }}>
-              {t('timerScreen.timeRemaining')}
-            </div>
-          )}
           {usePomodoro && (
-            <div className="text-muted" style={{ fontSize: '12px', marginTop: '8px' }}>
-              Total: {totalM}:{totalS}
-            </div>
+            <span className="text-gray-600 text-xs mt-3 tracking-widest">{totalM}:{totalS} total</span>
           )}
         </div>
-      </div>
+      </motion.div>
 
-      {!isHardcore && (
-        <div style={{ marginTop: '60px' }}>
-          <button className="secondary" onClick={onAbort}>
-            <XSquare size={18} /> {t('timerScreen.cancelFocus')}
+      {/* Controls */}
+      <div className="mt-14 flex flex-col items-center gap-4">
+        {isHardcore && (
+          <div className="flex items-center gap-2 text-red-400/60 text-xs tracking-[0.2em] uppercase">
+            <Shield size={14} /> Hardcore Active
+          </div>
+        )}
+        {!isHardcore && (
+          <button 
+            className="text-gray-600 hover:text-gray-400 text-sm flex items-center gap-2 transition-colors" 
+            onClick={onAbort}
+          >
+            <XSquare size={16} /> {t('timerScreen.cancelFocus')}
           </button>
-        </div>
-      )}
-      {isHardcore && (
-        <div style={{ marginTop: '40px' }}>
-          <h3 className="text-muted" style={{ fontSize: '16px', fontWeight: 'normal', marginBottom: '8px' }}>
-            {phase === 'FOCUS' ? t('timerScreen.focusingOn') : ''}
-          </h3>
-          <h2 style={{ fontSize: '24px', fontWeight: '600' }}>
-            {phase === 'FOCUS' ? topic : t('timerScreen.breakActive')}
-          </h2>
-          <p className="text-muted" style={{ fontSize: '14px', marginTop: '16px' }}>
-            <Shield size={16} style={{ display: 'inline', verticalAlign: 'text-bottom' }} /> Hardcore Mode Active
-          </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

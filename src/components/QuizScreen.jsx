@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Send, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 
 function QuizScreen({ quizData, apiKey, onSubmit }) {
   const { t } = useTranslation();
@@ -10,10 +11,17 @@ function QuizScreen({ quizData, apiKey, onSubmit }) {
 
   if (!quizData || quizData.length === 0) {
     return (
-      <div className="glass-panel flex-center" style={{ flexDirection: 'column' }}>
-        <h3 className="mb-4">{t('quizScreen.notAvailable')}</h3>
-        <p className="text-muted" style={{ marginBottom: '24px' }}>{t('quizScreen.failedToGenerate')}</p>
-        <button className="primary" onClick={() => onSubmit(0, t('quizScreen.notAvailable'))}>{t('quizScreen.continue')}</button>
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <h3 className="text-2xl font-bold text-white mb-4">{t('quizScreen.notAvailable')}</h3>
+        <p className="text-gray-500 mb-8 font-light">{t('quizScreen.failedToGenerate')}</p>
+        <motion.button 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="px-8 py-3 rounded-full bg-white/10 border border-white/15 text-white font-medium hover:bg-white/15 transition-all" 
+          onClick={() => onSubmit(0, t('quizScreen.notAvailable'))}
+        >
+          {t('quizScreen.continue')}
+        </motion.button>
       </div>
     );
   }
@@ -45,53 +53,81 @@ function QuizScreen({ quizData, apiKey, onSubmit }) {
 
   if (evaluationResult) {
     return (
-      <div className="glass-panel flex-center" style={{ flexDirection: 'column', textAlign: 'center' }}>
-        <CheckCircle2 size={48} style={{ color: 'var(--secondary)', marginBottom: '24px', filter: 'drop-shadow(0 0 15px rgba(167, 139, 250, 0.5))' }} />
-        <h2 style={{ marginBottom: '16px' }}>{t('quizScreen.evaluation')}</h2>
-        <div style={{ fontSize: '64px', fontWeight: 'bold', marginBottom: '24px', letterSpacing: '-0.05em' }}>
-          {evaluationResult.score} <span className="text-muted" style={{ fontSize: '32px' }}>/ 10</span>
+      <motion.div 
+        className="flex flex-col items-center py-16 text-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <CheckCircle2 size={56} className="text-focus-secondary mb-8 drop-shadow-[0_0_20px_rgba(236,72,153,0.4)]" />
+        <h2 className="text-2xl font-bold text-white mb-8">{t('quizScreen.evaluation')}</h2>
+        <div className="text-8xl font-black text-white tracking-tighter mb-2 leading-none">
+          {evaluationResult.score}
         </div>
-        <p style={{ fontSize: '16px', lineHeight: '1.6', marginBottom: '40px', maxWidth: '400px' }} className="text-muted">
+        <div className="text-gray-600 text-lg mb-10">/ 10</div>
+        <p className="text-gray-400 text-lg leading-relaxed mb-12 max-w-md mx-auto font-light">
           {evaluationResult.feedback}
         </p>
-        <button className="cta" onClick={() => onSubmit(evaluationResult.score, evaluationResult.feedback)}>
+        <motion.button 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full shadow-[0_0_30px_rgba(139,92,246,0.25)] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] transition-shadow" 
+          onClick={() => onSubmit(evaluationResult.score, evaluationResult.feedback)}
+        >
           {t('quizScreen.claimXp')}
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     );
   }
 
   return (
-    <div className="glass-panel" style={{ maxHeight: '100%', overflowY: 'auto' }}>
-      <h3 className="mb-4 text-cta" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {t('quizScreen.knowledgeCheckTitle')}
-      </h3>
+    <div className="max-w-3xl mx-auto flex flex-col">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
+          {t('quizScreen.knowledgeCheckTitle')}
+        </h2>
+        <p className="text-gray-500 font-light text-lg mb-10">
+          Answer to earn your XP.
+        </p>
+      </motion.div>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '32px' }}>
+      <div className="flex flex-col gap-10 mb-10">
         {quizData.map((q, index) => (
-          <div key={q.id}>
-            <p style={{ fontWeight: '600', marginBottom: '12px', fontSize: '15px' }}>
-              <span className="text-muted">{index + 1}.</span> {q.question}
+          <motion.div 
+            key={q.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="pb-10 border-b border-white/5 last:border-0"
+          >
+            <p className="font-medium text-lg text-white mb-4 leading-relaxed">
+              <span className="text-focus-primary mr-2">{index + 1}.</span> {q.question}
             </p>
             <textarea 
               placeholder={t('quizScreen.yourAnswer')}
               value={answers[q.id] || ''}
               onChange={(e) => handleTextChange(q.id, e.target.value)}
               rows="3"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-focus-primary/50 transition-colors resize-none"
             />
-          </div>
+          </motion.div>
         ))}
       </div>
       
-      <button 
-        className="cta" 
+      <motion.button 
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full shadow-[0_0_30px_rgba(139,92,246,0.25)] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] transition-shadow flex items-center gap-3 self-start disabled:opacity-50 disabled:hover:shadow-none" 
         onClick={handleSubmit} 
         disabled={isEvaluating}
-        style={{ width: '100%', padding: '14px' }}
       >
         <Send size={18} />
         {isEvaluating ? t('quizScreen.evaluating') : t('quizScreen.submit')}
-      </button>
+      </motion.button>
     </div>
   );
 }

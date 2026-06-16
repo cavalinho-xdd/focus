@@ -58,168 +58,180 @@ function Settings({ settings, onSave }) {
   };
 
   return (
-    <div className="panel" style={{ maxWidth: '600px', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <h2 className="text-gradient" style={{ marginBottom: '24px', fontSize: '28px', fontWeight: '800' }}>{t('settings.title')}</h2>
+    <div className="max-w-2xl w-full flex flex-col">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">{t('settings.title')}</h1>
+        <p className="text-gray-500 font-light text-lg mb-10">Configure your focus experience.</p>
+      </motion.div>
 
-      <div className="mb-4">
-        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
-          <Globe size={16} className="text-muted" /> {t('settings.language')}
+      {/* Language */}
+      <motion.div 
+        className="mb-8 pb-8 border-b border-white/5 relative"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <label className="flex items-center gap-2 mb-3 text-sm text-gray-500 font-medium tracking-wide">
+          <Globe size={16} /> {t('settings.language')}
         </label>
-        <div style={{ position: 'relative' }}>
+        <div className="relative">
           <button 
             type="button"
-            className="secondary" 
-            style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0, 0, 0, 0.2)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '12px', marginTop: 0, color: 'var(--text-main)', borderRadius: '12px' }}
+            className="w-full flex justify-between items-center bg-white/5 border border-white/10 px-5 py-3.5 rounded-xl text-white hover:bg-white/[0.07] transition-colors focus:outline-none"
             onClick={() => setIsLangOpen(!isLangOpen)}
           >
             {i18n.language === 'cs' ? t('settings.czech') : t('settings.english')}
-            <ChevronDown size={18} className="text-muted" style={{ transform: isLangOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+            <ChevronDown size={16} className={`text-gray-500 transition-transform ${isLangOpen ? 'rotate-180' : ''}`} />
           </button>
           
           <AnimatePresence>
             {isLangOpen && (
               <motion.div 
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.15 }}
-                style={{ 
-                  position: 'absolute', 
-                  top: '100%', 
-                  left: 0, 
-                  right: 0, 
-                  marginTop: '8px',
-                  background: '#13111C', 
-                  border: '1px solid rgba(255, 255, 255, 0.08)', 
-                  borderRadius: '12px', 
-                  overflow: 'hidden',
-                  zIndex: 50,
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
-                }}
+                className="absolute top-full left-0 right-0 mt-2 bg-[#0B0A15] border border-white/10 rounded-xl overflow-hidden z-50 shadow-2xl"
               >
-                <div 
-                  onClick={() => handleLanguageChange('en')}
-                  style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', background: i18n.language === 'en' ? 'rgba(255,255,255,0.05)' : 'transparent' }}
-                  onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
-                  onMouseLeave={(e) => e.target.style.background = i18n.language === 'en' ? 'rgba(255,255,255,0.05)' : 'transparent'}
-                >
-                  {t('settings.english')}
-                  {i18n.language === 'en' && <Check size={16} style={{ color: 'var(--primary)' }} />}
-                </div>
-                <div 
-                  onClick={() => handleLanguageChange('cs')}
-                  style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', background: i18n.language === 'cs' ? 'rgba(255,255,255,0.05)' : 'transparent' }}
-                  onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
-                  onMouseLeave={(e) => e.target.style.background = i18n.language === 'cs' ? 'rgba(255,255,255,0.05)' : 'transparent'}
-                >
-                  {t('settings.czech')}
-                  {i18n.language === 'cs' && <Check size={16} style={{ color: 'var(--primary)' }} />}
-                </div>
+                {['en', 'cs'].map(lang => (
+                  <div 
+                    key={lang}
+                    onClick={() => handleLanguageChange(lang)}
+                    className={`px-5 py-3.5 flex justify-between items-center cursor-pointer transition-colors ${
+                      i18n.language === lang ? 'bg-white/5 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    {lang === 'en' ? t('settings.english') : t('settings.czech')}
+                    {i18n.language === lang && <Check size={14} className="text-focus-primary" />}
+                  </div>
+                ))}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
       
-      <div className="mb-4">
-        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
-          <Key size={16} className="text-muted" /> {t('settings.apiKey')}
+      {/* API Key */}
+      <motion.div 
+        className="mb-8 pb-8 border-b border-white/5"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <label className="flex items-center gap-2 mb-3 text-sm text-gray-500 font-medium tracking-wide">
+          <Key size={16} /> {t('settings.apiKey')}
         </label>
         <input 
           type="password" 
           value={apiKey} 
           onChange={(e) => setApiKey(e.target.value)} 
           placeholder="AIzaSy..." 
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white placeholder-gray-600 focus:outline-none focus:border-focus-primary/50 transition-colors"
         />
-        <p style={{ fontSize: '13px' }} className="text-muted">
-          {t('settings.keyDisclaimer')}
-        </p>
-      </div>
+        <p className="text-xs text-gray-600 mt-2">{t('settings.keyDisclaimer')}</p>
+      </motion.div>
 
-      <div className="mb-4" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
-          <Shield size={16} className="text-muted" /> {t('settings.blacklistLabel')}
+      {/* Blacklist */}
+      <motion.div 
+        className="mb-8 flex flex-col"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <label className="flex items-center gap-2 mb-3 text-sm text-gray-500 font-medium tracking-wide">
+          <Shield size={16} /> {t('settings.blacklistLabel')}
         </label>
         <textarea 
-          style={{ flexGrow: 1, fontFamily: 'monospace' }}
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-focus-primary/50 transition-colors resize-none min-h-[160px]"
           value={blacklistRaw}
           onChange={(e) => setBlacklistRaw(e.target.value)}
           placeholder={`steam\ndiscord\nspotify`}
         />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '16px' }}>
-          <p style={{ fontSize: '13px', maxWidth: '60%' }} className="text-muted">
-            {t('settings.blacklistDisclaimer')}
-          </p>
+        <div className="flex justify-between items-start mt-4">
+          <p className="text-xs text-gray-600 max-w-[60%]">{t('settings.blacklistDisclaimer')}</p>
           <button 
             type="button"
-            className="secondary" 
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
             onClick={handleScan} 
             disabled={isScanning} 
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', margin: 0 }}
           >
-            <Activity size={16} /> {isScanning ? t('settings.scanning') : t('settings.scanApps')}
+            <Activity size={14} /> {isScanning ? t('settings.scanning') : t('settings.scanApps')}
           </button>
         </div>
-      </div>
+      </motion.div>
 
-      <div>
-        <button className="primary" onClick={handleSave}>
-          <Save size={18} /> {t('settings.saveSettings')}
-        </button>
-      </div>
+      {/* Save */}
+      <motion.button 
+        onClick={handleSave}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full shadow-[0_0_30px_rgba(139,92,246,0.25)] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] transition-shadow flex items-center gap-3 self-start"
+      >
+        <Save size={18} /> {t('settings.saveSettings')}
+      </motion.button>
 
+      {/* Scanner Modal */}
       <AnimatePresence>
         {showScannerModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 20px' }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex justify-center items-start pt-10 px-4 pb-10"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              style={{ background: '#13111C', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', boxSizing: 'border-box', overflow: 'hidden' }}
+              className="bg-[#0B0A15] border border-white/10 rounded-2xl p-6 w-full max-w-lg flex flex-col max-h-full"
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
-                <h3 style={{ margin: 0 }}>{t('settings.scanTitle')}</h3>
-                <button type="button" onClick={() => setShowScannerModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                  <X size={24} />
+              <div className="flex justify-between items-center mb-6 shrink-0">
+                <h3 className="text-xl font-bold">{t('settings.scanTitle')}</h3>
+                <button type="button" onClick={() => setShowScannerModal(false)} className="text-gray-500 hover:text-white transition-colors">
+                  <X size={20} />
                 </button>
               </div>
 
-              <div style={{ position: 'relative', marginBottom: '16px', flexShrink: 0 }}>
-                <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              <div className="relative mb-4 shrink-0">
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
                 <input 
                   type="text" 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={i18n.language === 'cs' ? 'Hledat aplikaci...' : 'Search apps...'}
-                  style={{ width: '100%', paddingLeft: '40px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-focus-primary/50 transition-colors"
                 />
               </div>
               
-              <div style={{ overflowY: 'auto', flexGrow: 1, minHeight: 0, marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="overflow-y-auto flex-1 min-h-0 flex flex-col gap-1 mb-6">
                 {scannedProcesses.filter(p => p.toLowerCase().includes(searchQuery.toLowerCase())).map(proc => (
-                  <label key={proc} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', cursor: 'pointer', flexShrink: 0 }}>
+                  <label key={proc} className="flex items-center gap-3 py-2.5 px-3 hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
                     <input 
                       type="checkbox" 
                       checked={selectedProcesses.has(proc)} 
                       onChange={() => toggleProcess(proc)} 
-                      style={{ width: '18px', height: '18px', accentColor: 'var(--primary)', flexShrink: 0 }}
+                      className="w-4 h-4 accent-focus-primary cursor-pointer shrink-0 rounded"
                     />
-                    <span style={{ fontSize: '14px', fontFamily: 'monospace', wordBreak: 'break-all' }}>{proc}</span>
+                    <span className="text-sm font-mono text-gray-300 break-all">{proc}</span>
                   </label>
                 ))}
                 {scannedProcesses.filter(p => p.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
-                  <p className="text-muted text-center" style={{ padding: '20px' }}>Nic nenalezeno.</p>
+                  <p className="text-gray-600 text-center py-8 text-sm">Nic nenalezeno.</p>
                 )}
               </div>
 
-              <button type="button" className="primary" onClick={handleApplyScanner} style={{ width: '100%', flexShrink: 0 }}>
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full bg-focus-primary text-white font-bold py-3 px-6 rounded-full transition-colors shrink-0" 
+                onClick={handleApplyScanner}
+              >
                 {t('settings.apply')} ({selectedProcesses.size})
-              </button>
+              </motion.button>
             </motion.div>
           </motion.div>
         )}
