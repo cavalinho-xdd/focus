@@ -52,6 +52,58 @@ app.on('open-url', (event, url) => {
   handleDeepLink(url);
 });
 
+const http = require('http');
+
+let authServer = null;
+
+function startAuthServer() {
+  if (authServer) return;
+  authServer = http.createServer((req, res) => {
+    if (req.url && req.url.startsWith('/auth?token=')) {
+      try {
+        const urlObj = new URL(req.url, 'http://127.0.0.1:43210');
+        const token = urlObj.searchParams.get('token');
+        if (mainWindow && token) {
+          mainWindow.webContents.send('auth:google', token);
+          if (mainWindow.isMinimized()) mainWindow.restore();
+          mainWindow.focus();
+          
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(`
+            <html>
+              <body style="background:#0F172A; color:white; font-family:sans-serif; text-align:center; padding-top:100px;">
+                <h2>Authentication Successful!</h2>
+                <p>You can close this tab and return to the Aurora app.</p>
+                <script>
+                  setTimeout(() => { window.close(); }, 2000);
+                </script>
+              </body>
+            </html>
+          `);
+        } else {
+          res.writeHead(400);
+          res.end('Bad Request: Missing token or window not ready');
+        }
+      } catch(e) {
+        console.error("Local auth server error:", e);
+        res.writeHead(500);
+        res.end('Internal Server Error');
+      }
+    } else {
+      res.writeHead(404);
+      res.end('Not Found');
+    }
+  });
+
+  authServer.on('error', (e) => {
+    console.error("Auth server error:", e);
+  });
+
+  authServer.listen(43210, '127.0.0.1', () => {
+    console.log("Local auth server listening on 127.0.0.1:43210");
+  });
+}
+
 function handleDeepLink(url) {
   if (url && url.startsWith('aurora://auth')) {
     try {
@@ -165,6 +217,7 @@ app.whenReady().then(() => {
   });
 
   createWindow();
+  startAuthServer();
 
   if (process.env.NODE_ENV !== 'development') {
     autoUpdater.checkForUpdatesAndNotify().catch(err => console.error("Updater error:", err));
