@@ -182,7 +182,7 @@ function Settings({ settings, onSave }) {
           type="button"
           onClick={() => {
             if (window.api && window.api.shell) {
-              window.api.shell.openExternal("https://forms.gle/3VYLWJWVKNeSujxE7");
+              window.api.shell.openExternal("https://forms.gle/WbAz2Aat8qNAaPnTA");
             }
           }}
           className="w-full mt-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-semibold py-3 px-8 rounded-xl transition-all"
