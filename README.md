@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="build/icon.png" width="128" alt="Focus App Icon"/>
+  <img src="build/icon.png" width="128" alt="Aurora App Icon"/>
   
-  # Focus App
+  # Aurora
 
   **A next-generation Pomodoro timer with AI accountability and gamification.**
 
@@ -10,8 +10,7 @@
 </div>
 
 <br />
-
-Focus is not just another Pomodoro timer. It is an aggressive, gamified productivity tool built to physically prevent procrastination and hold you accountable using artificial intelligence.
+Aurora is not just another Pomodoro timer. It is an aggressive, gamified productivity tool built to physically prevent procrastination and hold you accountable using artificial intelligence.
 
 ## ✨ Key Features
 
@@ -28,10 +27,10 @@ Focus is not just another Pomodoro timer. It is an aggressive, gamified producti
 
 ## 🚀 Download & Install
 
-Focus is available for all major operating systems. Head over to the [Releases](https://github.com/cavalinho-xdd/focus/releases) page to download the latest version:
+Aurora is available for all major operating systems. Head over to the [Releases](https://github.com/cavalinho-xdd/focus/releases) page to download the latest version:
 
-* **Windows**: Download `Focus-Setup-X.X.X.exe`
-* **macOS (Apple Silicon)**: Download `Focus-X.X.X-arm64.dmg`
+* **Windows**: Download `Aurora-Setup-X.X.X.exe`
+* **macOS (Apple Silicon)**: Download `Aurora-X.X.X-arm64.dmg`
 * **Linux**: Download `.AppImage` or `.deb`
 
 *Note: As this is an indie project, the installers are not yet digitally signed with a commercial certificate. You may need to click "Run anyway" on Windows SmartScreen or "Open" via right-click on macOS.*
@@ -47,7 +46,7 @@ Focus is available for all major operating systems. Head over to the [Releases](
 
 ## 💻 Development
 
-Want to build Focus locally or contribute? It's easy!
+Want to build Aurora locally or contribute? It's easy!
 
 ### Prerequisites
 * Node.js (v20 or higher)
@@ -56,8 +55,8 @@ Want to build Focus locally or contribute? It's easy!
 ### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/cavalinho-xdd/focus.git
-cd focus
+git clone https://github.com/cavalinho-xdd/aurora.git
+cd aurora
 
 # Install dependencies
 npm install
@@ -79,7 +78,7 @@ npm run package:mac   # For macOS
 
 ## 🐛 Bug Reports & Feedback
 
-Found a bug or have a feature request? Please [open an issue](https://github.com/cavalinho-xdd/focus/issues) on GitHub or use the "Report a Bug" button directly inside the app.
+Found a bug or have a feature request? Please [open an issue](https://github.com/cavalinho-xdd/aurora/issues) on GitHub or use the "Report a Bug" button directly inside the app.
 
 ---
 <div align="center">
