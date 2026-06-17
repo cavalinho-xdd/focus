@@ -1,6 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { Renderer, Program, Mesh, Triangle } from 'ogl';
 
+/**
+ * @file SoftAurora.jsx
+ * @description WebGL-based ambient background renderer.
+ * Utilizes OGL and custom GLSL shaders to render a performant, dynamic aurora effect.
+ * Implements visibility listeners to pause the render loop when hidden, 
+ * preserving resources on portable devices.
+ */
+
 function hexToVec3(hex) {
   const h = hex.replace('#', '');
   return [
@@ -147,7 +155,7 @@ void main() {
 }
 `;
 
-export default function SoftAurora({
+const SoftAurora = React.memo(({
   speed = 0.6,
   scale = 1.5,
   brightness = 1.0,
@@ -162,7 +170,7 @@ export default function SoftAurora({
   colorSpeed = 1.0,
   enableMouseInteraction = true,
   mouseInfluence = 0.25
-}) {
+}) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -231,8 +239,22 @@ export default function SoftAurora({
     }
 
     let animationFrameId;
+    let isVisible = !document.hidden;
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        isVisible = true;
+        animationFrameId = requestAnimationFrame(update);
+      } else {
+        isVisible = false;
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     function update(time) {
+      if (!isVisible) return;
+
       animationFrameId = requestAnimationFrame(update);
       program.uniforms.uTime.value = time * 0.001;
 
@@ -248,10 +270,13 @@ export default function SoftAurora({
 
       renderer.render({ scene: mesh });
     }
-    animationFrameId = requestAnimationFrame(update);
+    if (isVisible) {
+      animationFrameId = requestAnimationFrame(update);
+    }
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', resize);
       if (enableMouseInteraction) {
         window.removeEventListener('mousemove', handleMouseMove);
@@ -263,4 +288,6 @@ export default function SoftAurora({
   }, [speed, scale, brightness, color1, color2, noiseFrequency, noiseAmplitude, bandHeight, bandSpread, octaveDecay, layerOffset, colorSpeed, enableMouseInteraction, mouseInfluence]);
 
   return <div ref={containerRef} className="w-full h-full pointer-events-none" />;
-}
+});
+
+export default SoftAurora;

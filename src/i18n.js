@@ -1,4 +1,10 @@
 import i18n from 'i18next';
+/**
+ * @file i18n.js
+ * @description Internationalization configuration using i18next.
+ * Defines resource bundles for supported locales and initializes the translation instance.
+ * Automatically synchronizes with local storage to persist user language preferences.
+ */
 import { initReactI18next } from 'react-i18next';
 
 const resources = {
@@ -82,6 +88,8 @@ const resources = {
         "scanning": "Scanning...",
         "scanTitle": "Running Processes",
         "apply": "Apply Selected",
+        "lowGraphics": "Low Graphics Mode",
+        "lowGraphicsDesc": "Disables 3D background animations to save battery and CPU.",
         "reportBug": "Report a Bug"
       },
       "socialScreen": {
@@ -161,6 +169,23 @@ const resources = {
           "inferno": "Inferno",
           "legendary": "Legendary"
         }
+      },
+      "errors": {
+        "auth": {
+          "weakPassword": "Password is too weak. Please use at least 6 characters.",
+          "userNotFound": "No account found with this email.",
+          "wrongPassword": "Incorrect password.",
+          "networkRequestFailed": "Network error. Please check your internet connection.",
+          "tooManyRequests": "Too many failed attempts. Please try again later.",
+          "invalidEmail": "Please enter a valid email address.",
+          "default": "An unexpected error occurred. Please try again."
+        },
+        "system": {
+          "offlineTitle": "You are offline",
+          "offlineDesc": "Community and Sync features are paused. You can still use the timer.",
+          "updaterErrorTitle": "Update Failed",
+          "updaterErrorDesc": "We couldn't install the update. We'll try again later."
+        }
       }
     }
   },
@@ -239,6 +264,8 @@ const resources = {
         "scanning": "Skenuji...",
         "scanTitle": "Běžící procesy",
         "apply": "Přidat vybrané",
+        "lowGraphics": "Úsporný režim grafiky",
+        "lowGraphicsDesc": "Vypne 3D animace na pozadí pro úsporu baterie a CPU.",
         "reportBug": "Nahlásit chybu"
       },
       "socialScreen": {
@@ -321,22 +348,44 @@ const resources = {
           "inferno": "Peklo",
           "legendary": "Legenda"
         }
+      },
+      "errors": {
+        "auth": {
+          "weakPassword": "Heslo je příliš slabé. Použijte alespoň 6 znaků.",
+          "userNotFound": "S tímto emailem nebyl nalezen žádný účet.",
+          "wrongPassword": "Nesprávné heslo.",
+          "networkRequestFailed": "Chyba sítě. Zkontrolujte připojení k internetu.",
+          "tooManyRequests": "Příliš mnoho neúspěšných pokusů. Zkuste to prosím později.",
+          "invalidEmail": "Zadejte prosím platnou emailovou adresu.",
+          "default": "Došlo k neočekávané chybě. Zkuste to prosím znovu."
+        },
+        "system": {
+          "offlineTitle": "Jste offline",
+          "offlineDesc": "Synchronizace a Komunita jsou pozastaveny. Časovač funguje dál.",
+          "updaterErrorTitle": "Aktualizace selhala",
+          "updaterErrorDesc": "Nepodařilo se nainstalovat aktualizaci. Zkusíme to znovu později."
+        }
       }
     }
   }
 };
 
-// Retrieve language from localStorage or default to en
-const savedLang = localStorage.getItem('appLang') || 'en';
+/**
+ * Retrieve language from localStorage or default to english.
+ */
+const savedLang = localStorage.getItem('aurora_lang') || 'en';
 
+/**
+ * Configure i18next instance for application localization.
+ */
 i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: savedLang, // default language
+    lng: savedLang,
     fallbackLng: 'en',
     interpolation: {
-      escapeValue: false // react already safes from xss
+      escapeValue: false
     }
   });
 

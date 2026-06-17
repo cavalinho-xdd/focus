@@ -1,4 +1,10 @@
 import React from 'react';
+/**
+ * @file Dashboard.jsx
+ * @description Primary user overview interface.
+ * Displays user statistics, current level, progress towards the next level,
+ * and dynamic greeting based on the current time of day.
+ */
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
@@ -6,19 +12,11 @@ function Dashboard({ stats, userName }) {
   const { t } = useTranslation();
   const progressPercent = (stats.xp / (stats.level * 100)) * 100;
 
-  // Time-based greeting
   const hour = new Date().getHours();
   let greeting;
-  if (hour < 12) greeting = t('dashboard.goodMorning', { fallbackLng: 'en' });
-  else if (hour < 18) greeting = t('dashboard.goodAfternoon', { fallbackLng: 'en' });
-  else greeting = t('dashboard.goodEvening', { fallbackLng: 'en' });
-
-  // Fallback if i18n keys missing
-  if (!greeting || greeting.includes('dashboard.good')) {
-    if (hour < 12) greeting = 'Good morning';
-    else if (hour < 18) greeting = 'Good afternoon';
-    else greeting = 'Good evening';
-  }
+  if (hour < 12) greeting = t('dashboard.goodMorning', 'Good morning');
+  else if (hour < 18) greeting = t('dashboard.goodAfternoon', 'Good afternoon');
+  else greeting = t('dashboard.goodEvening', 'Good evening');
 
   const displayName = userName || 'Focuser';
 

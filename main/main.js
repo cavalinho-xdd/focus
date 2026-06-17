@@ -1,8 +1,16 @@
+/**
+ * @file main.js
+ * @description Electron Main Process entry point.
+ * Orchestrates window lifecycle management, system tray integration, and IPC communications.
+ * Contains critical logic for deep-linking (OAuth flows) and the "Hardcore Mode" constraint 
+ * which deliberately intercepts application termination events.
+ */
 const { app, BrowserWindow, ipcMain, Tray, Menu, shell } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 
-// Disable Vulkan for Linux/Wayland compatibility
 app.commandLine.appendSwitch('disable-vulkan');
+
 const { startBlocker, stopBlocker } = require('./blocker');
 const { generateQuestions, evaluateAnswers } = require('./geminiService');
 const { loadData, saveData } = require('./storage');
@@ -13,6 +21,55 @@ let tray = null;
 let isHardcoreMode = false;
 let isQuitting = false;
 
+/**
+ * Deep Link & Single Instance Registration
+ * Ensures OAuth redirects map back to a single running instance of the application.
+ */
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('aurora', process.execPath, [path.resolve(process.argv[1])])
+  }
+} else {
+  app.setAsDefaultProtocolClient('aurora')
+}
+
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+      const url = commandLine.pop()
+      handleDeepLink(url);
+    }
+  })
+}
+
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  handleDeepLink(url);
+});
+
+function handleDeepLink(url) {
+  if (url && url.startsWith('aurora://auth')) {
+    try {
+      const urlObj = new URL(url);
+      const token = urlObj.searchParams.get('token');
+      if (mainWindow && token) {
+        mainWindow.webContents.send('auth:google', token);
+      }
+    } catch (e) {
+      console.error("Deep link parse error:", e);
+    }
+  }
+}
+
+/**
+ * Bootstraps the primary rendering context.
+ * Implements the graceful initialization pattern (ready-to-show) to prevent FOUC.
+ */
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1024,
@@ -22,40 +79,36 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false
     },
-    backgroundColor: '#0F172A', // Dark mode background from UI/UX rules
-    autoHideMenuBar: true, // Skryje horní menu bar (File, Edit, atd.)
+    backgroundColor: '#0F172A',
+    autoHideMenuBar: true,
     show: false
   });
 
-  // Wait to show until ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
 
   mainWindow.on('close', (e) => {
     if (isHardcoreMode) {
-      e.preventDefault(); // Zcela zablokuje i minimalizaci do traye, chceme to nechat viditelné
+      e.preventDefault();
       return;
     }
     
     if (!isQuitting) {
       e.preventDefault();
-      mainWindow.hide(); // Minimalizace do traye
+      mainWindow.hide();
     }
   });
 
-  // Load Vite dev server if in dev mode
   const isDev = process.env.NODE_ENV === 'development';
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
-    // mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 }
 
 app.whenReady().then(() => {
-  // IPC handlers - MUST be registered before createWindow
   ipcMain.on('blocker:start', (event, { blacklist, hardcore }) => {
     isHardcoreMode = hardcore || false;
     startBlocker(blacklist);
@@ -90,31 +143,54 @@ app.whenReady().then(() => {
     shell.openExternal(url);
   });
 
-  createWindow();
-
-  // Nastavení Tray ikony
-  try {
-    tray = new Tray(path.join(__dirname, 'icon.png'));
-  const contextMenu = Menu.buildFromTemplate([
-    { label: 'Otevřít Aurora', click: () => mainWindow.show() },
-    { type: 'separator' },
-    { 
-      label: 'Ukončit', 
-      click: () => {
-        if (!isHardcoreMode) {
-          isQuitting = true;
-          app.quit();
-        }
-      } 
-    }
-  ]);
-  tray.setToolTip('Aurora');
-  tray.setContextMenu(contextMenu);
-  
-  tray.on('click', () => {
-    mainWindow.show();
+  autoUpdater.on('update-available', (info) => {
+    if (mainWindow) mainWindow.webContents.send('updater:available', info);
   });
 
+  autoUpdater.on('download-progress', (progressObj) => {
+    if (mainWindow) mainWindow.webContents.send('updater:progress', progressObj);
+  });
+
+  autoUpdater.on('error', (err) => {
+    if (mainWindow) mainWindow.webContents.send('updater:error', err.message);
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    if (mainWindow) mainWindow.webContents.send('updater:downloaded', info);
+  });
+
+  ipcMain.on('updater:install', () => {
+    isQuitting = true;
+    autoUpdater.quitAndInstall();
+  });
+
+  createWindow();
+
+  if (process.env.NODE_ENV !== 'development') {
+    autoUpdater.checkForUpdatesAndNotify().catch(err => console.error("Updater error:", err));
+  }
+
+  try {
+    tray = new Tray(path.join(__dirname, 'icon.png'));
+    const contextMenu = Menu.buildFromTemplate([
+      { label: 'Open Aurora', click: () => mainWindow.show() },
+      { type: 'separator' },
+      { 
+        label: 'Quit', 
+        click: () => {
+          if (!isHardcoreMode) {
+            isQuitting = true;
+            app.quit();
+          }
+        } 
+      }
+    ]);
+    tray.setToolTip('Aurora');
+    tray.setContextMenu(contextMenu);
+    
+    tray.on('click', () => {
+      mainWindow.show();
+    });
   } catch (err) {
     console.error("Failed to create tray:", err);
   }

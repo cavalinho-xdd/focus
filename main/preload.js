@@ -18,5 +18,15 @@ contextBridge.exposeInMainWorld('api', {
   },
   shell: {
     openExternal: (url) => ipcRenderer.send('shell:openExternal', { url })
+  },
+  updater: {
+    onError: (callback) => ipcRenderer.on('updater:error', (event, error) => callback(error)),
+    onAvailable: (callback) => ipcRenderer.on('updater:available', (event, info) => callback(info)),
+    onProgress: (callback) => ipcRenderer.on('updater:progress', (event, progressObj) => callback(progressObj)),
+    onDownloaded: (callback) => ipcRenderer.on('updater:downloaded', (event, info) => callback(info)),
+    installUpdate: () => ipcRenderer.send('updater:install')
+  },
+  auth: {
+    onGoogleAuth: (callback) => ipcRenderer.on('auth:google', (event, token) => callback(token))
   }
 });

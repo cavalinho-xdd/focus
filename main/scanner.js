@@ -1,3 +1,8 @@
+/**
+ * @file scanner.js
+ * @description Extracts a comprehensive list of actively running OS processes.
+ * Used to populate the autocomplete and selection menus for the application blacklist.
+ */
 const { exec } = require('child_process');
 const os = require('os');
 
@@ -13,7 +18,7 @@ function getProcesses() {
     }
 
     exec(command, (err, stdout) => {
-      if (err) {
+      if (err || !stdout) {
         console.error('Error scanning processes:', err);
         return resolve([]);
       }
@@ -21,12 +26,10 @@ function getProcesses() {
       let processes = new Set();
       
       if (platform === 'win32') {
-        // Fix pro Wine/Proton/Windows UTF-16LE výstup (odstranění null bytů)
         const cleanStdout = stdout.replace(/\x00/g, '');
         const lines = cleanStdout.split('\n');
         lines.forEach(line => {
           if (!line.trim()) return;
-          // tasklist csv format: "image name","pid","session name","session#","mem usage"
           const parts = line.split('","');
           if (parts.length > 0) {
             let name = parts[0].replace('"', '').trim();
@@ -45,7 +48,6 @@ function getProcesses() {
         });
       }
 
-      // Return sorted array of unique process names
       const sortedProcesses = Array.from(processes).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
       resolve(sortedProcesses);
     });

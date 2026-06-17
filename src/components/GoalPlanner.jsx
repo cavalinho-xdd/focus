@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
+/**
+ * @file GoalPlanner.jsx
+ * @description Goal initialization component.
+ * Allows users to set focus intent, duration, and toggle Hardcore Mode.
+ */
 import { createPortal } from 'react-dom';
 import { Play, Shield, AlertTriangle, Clock, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
+import ToggleSwitch from './ToggleSwitch';
 
 function GoalPlanner({ onStart, apiKeyMissing }) {
   const { t } = useTranslation();
@@ -51,12 +57,10 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
     }
   };
 
-  // Quick-select time presets
   const timePresets = [15, 25, 45, 60];
 
   return (
     <div>
-      {/* Section heading — flat, like web feature sections */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -96,7 +100,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
               placeholder={t('goalPlanner.topicPlaceholder')} 
               value={topic}
               onChange={(e) => { setTopic(e.target.value); if (topicError) setTopicError(false); }}
-              className={`w-full bg-white/5 border ${topicError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-5 py-4 text-white text-lg placeholder-gray-600 focus:outline-none transition-colors backdrop-blur-sm`}
+              className={`w-full glass-card border ${topicError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-5 py-4 text-white text-lg placeholder-gray-500 focus:outline-none transition-all shadow-inner`}
             />
             <AnimatePresence>
               {topicError && (
@@ -139,41 +143,48 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
               type="number" 
               min="1" 
               max="120"
-              value={minutes}
-              onChange={(e) => setMinutes(parseInt(e.target.value))}
+              value={minutes || ''}
+              onChange={(e) => setMinutes(parseInt(e.target.value) || '')}
+              placeholder="min"
               required
-              className="w-20 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-colors"
+              className="w-20 glass-card border border-white/10 rounded-full px-4 py-2.5 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-all placeholder-gray-600"
             />
           </div>
         </div>
 
-        {/* Options row — flat toggles */}
-        <div className="flex gap-4">
-          <button
-            type="button"
+        {/* Options row — premium glass cards with toggles */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div 
+            className={`flex-1 glass-card p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all ${usePomodoro ? 'glow-border' : 'border border-white/5 hover:border-white/10 hover:bg-white/5'}`} 
             onClick={() => setUsePomodoro(!usePomodoro)}
-            className={`flex items-center gap-2.5 px-5 py-3 rounded-full text-sm font-medium transition-all border ${
-              usePomodoro 
-                ? 'bg-white/10 text-white border-white/20' 
-                : 'bg-transparent text-gray-500 border-white/5 hover:border-white/10 hover:text-gray-400'
-            }`}
           >
-            <Clock size={16} />
-            {t('goalPlanner.usePomodoro')}
-          </button>
+            <div className="flex items-center gap-4">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${usePomodoro ? 'bg-focus-primary/20 text-focus-primary' : 'bg-white/5 text-gray-400'}`}>
+                <Clock size={20} />
+              </div>
+              <div>
+                <span className="block font-medium text-white">{t('goalPlanner.usePomodoro')}</span>
+                <span className="text-xs text-gray-400 font-light hidden sm:block">Break work into intervals</span>
+              </div>
+            </div>
+            <ToggleSwitch checked={usePomodoro} onChange={setUsePomodoro} />
+          </div>
 
-          <button
-            type="button"
+          <div 
+            className={`flex-1 glass-card p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all ${isHardcore ? 'border border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.15)] bg-red-500/5' : 'border border-white/5 hover:border-white/10 hover:bg-white/5'}`} 
             onClick={() => setIsHardcore(!isHardcore)}
-            className={`flex items-center gap-2.5 px-5 py-3 rounded-full text-sm font-medium transition-all border ${
-              isHardcore 
-                ? 'bg-red-500/10 text-red-400 border-red-500/30' 
-                : 'bg-transparent text-gray-500 border-white/5 hover:border-white/10 hover:text-gray-400'
-            }`}
           >
-            <Shield size={16} />
-            {t('goalPlanner.hardcoreMode')}
-          </button>
+            <div className="flex items-center gap-4">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isHardcore ? 'bg-red-500/20 text-red-500' : 'bg-white/5 text-gray-400'}`}>
+                <Shield size={20} />
+              </div>
+              <div>
+                <span className="block font-medium text-white">{t('goalPlanner.hardcoreMode')}</span>
+                <span className="text-xs text-gray-400 font-light hidden sm:block">App cannot be closed</span>
+              </div>
+            </div>
+            <ToggleSwitch checked={isHardcore} onChange={setIsHardcore} />
+          </div>
         </div>
 
         {/* Pomodoro Settings */}
@@ -192,7 +203,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 <input 
                   type="number" min="1" max="120" 
                   value={pomodoroFocus} onChange={e => setPomodoroFocus(parseInt(e.target.value) || 1)}
-                  className="w-24 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-colors"
+                  className="w-24 glass-card border border-white/10 rounded-xl px-4 py-3 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-all"
                 />
               </div>
               <div>
@@ -202,7 +213,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 <input 
                   type="number" min="1" max="60" 
                   value={pomodoroBreak} onChange={e => setPomodoroBreak(parseInt(e.target.value) || 1)}
-                  className="w-24 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-colors"
+                  className="w-24 glass-card border border-white/10 rounded-xl px-4 py-3 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-all"
                 />
               </div>
             </motion.div>

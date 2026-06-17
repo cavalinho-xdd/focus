@@ -1,8 +1,12 @@
+/**
+ * @file storage.js
+ * @description Local disk I/O interface for Electron.
+ * Safely persists application settings and minimal state to the host file system.
+ */
 const fs = require('fs');
 const path = require('path');
 const { app } = require('electron');
 
-// Uloží se do ~/.config/focus/userdata.json na Linuxu
 const userDataPath = path.join(app.getPath('userData'), 'userdata.json');
 
 const defaultData = {
@@ -26,7 +30,7 @@ function loadData() {
   } catch (err) {
     console.error('[Storage] Error loading data', err);
   }
-  return defaultData; // Fallback
+  return defaultData;
 }
 
 function saveData(data) {

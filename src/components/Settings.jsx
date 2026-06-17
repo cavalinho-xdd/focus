@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
-import { Save, Shield, Key, Globe, ChevronDown, Check, Activity, X, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+/**
+ * @file Settings.jsx
+ * @description Application configuration interface.
+ * Handles user preferences including Gemini API keys, language selection,
+ * process blacklisting for the Hardcore blocker, and performance modes.
+ */
+import { Save, Shield, Key, Globe, ChevronDown, Check, Activity, X, Search, BatteryMedium } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
+import ToggleSwitch from './ToggleSwitch';
 
 function Settings({ settings, onSave }) {
   const { t, i18n } = useTranslation();
   const [apiKey, setApiKey] = useState(settings.apiKey || '');
   const [blacklistRaw, setBlacklistRaw] = useState((settings.blacklist || []).join('\n'));
+  const [lowGraphicsMode, setLowGraphicsMode] = useState(settings.lowGraphicsMode || false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [showScannerModal, setShowScannerModal] = useState(false);
@@ -54,7 +62,7 @@ function Settings({ settings, onSave }) {
 
   const handleSave = () => {
     const list = blacklistRaw.split('\n').map(s => s.trim()).filter(Boolean);
-    onSave({ apiKey, blacklist: list });
+    onSave({ apiKey, blacklist: list, lowGraphicsMode });
   };
 
   return (
@@ -162,6 +170,22 @@ function Settings({ settings, onSave }) {
             <Activity size={14} /> {isScanning ? t('settings.scanning') : t('settings.scanApps')}
           </button>
         </div>
+      </motion.div>
+
+      {/* Low Graphics Mode */}
+      <motion.div 
+        className="mb-8 pb-8 border-b border-white/5"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <label className="flex items-center gap-2 text-sm text-gray-500 font-medium tracking-wide">
+            <BatteryMedium size={16} /> {t('settings.lowGraphics')}
+          </label>
+          <ToggleSwitch checked={lowGraphicsMode} onChange={setLowGraphicsMode} />
+        </div>
+        <p className="text-xs text-gray-600 max-w-[80%]">{t('settings.lowGraphicsDesc')}</p>
       </motion.div>
 
       {/* Save */}
