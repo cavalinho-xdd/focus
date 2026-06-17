@@ -8,8 +8,8 @@ import React, { useState, useEffect } from 'react';
  */
 import { Settings as SettingsIcon, Trophy, LogOut, LayoutDashboard, AlertCircle, WifiOff } from 'lucide-react';
 import { auth, db } from './firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import Dashboard from './components/Dashboard';
 import GoalPlanner from './components/GoalPlanner';
@@ -127,8 +127,6 @@ function App() {
   const handleSaveNickname = async () => {
     if (!tempNickname.trim()) return;
     try {
-      const { updateProfile } = await import('firebase/auth');
-      const { setDoc } = await import('firebase/firestore');
       await updateProfile(currentUser, { displayName: tempNickname });
       await setDoc(doc(db, "users", currentUser.uid), {
         displayName: tempNickname,
