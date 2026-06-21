@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+@theme {
+  --color-focus-bg: #0c0b18;
+  --color-focus-primary: #8B5CF6;
+  --color-focus-secondary: #EC4899;
+  --color-focus-accent: #0EA5E9;
+  
+  --font-sans: 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'SF Mono', monospace;
+
+  /* Single CTA glow — used sparingly */
+  --shadow-glow-cta: 0 0 24px rgba(139, 92, 246, 0.25);
+  --shadow-glow-cta-hover: 0 0 40px rgba(139, 92, 246, 0.35);
+
+  /* Semantic error/warning glows */
+
+
+  /* Easing */
+  --ease-ui-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  /* Z-index scale */
+  --z-background: 0;
+  --z-content: 10;
+  --z-sidebar: 20;
+  --z-sticky: 30;
+  --z-dropdown: 40;
+  --z-modal-backdrop: 50;
+  --z-modal: 60;
+  --z-toast: 70;
+  --z-tooltip: 80;
+}
+
+@layer base {
+  html {
+    @apply bg-focus-bg;
+    /* Default base font size is 16px */
+  }
+
+  /* Scale up UI on 2K displays (2560x1440) */
+  @media (min-width: 2560px) {
+    html {
+      font-size: 20px;
+    }
+  }
+
+  /* Scale up UI on 4K displays (3840x2160) */
+  @media (min-width: 3840px) {
+    html {
+      font-size: 26px;
+    }
+  }
+  body {
+    @apply text-white overflow-x-hidden antialiased;
+    font-family: var(--font-sans);
+  }
+
+  /* Headings — balanced wrapping, tighter tracking */
+  h1, h2, h3 {
+    text-wrap: balance;
+    letter-spacing: -0.025em;
+  }
+
+  /* Focus ring — accessibility */
+  :focus-visible {
+    outline: 2px solid var(--color-focus-primary);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+  /* Custom scrollbar — thin, subtle */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar:horizontal {
+    display: none;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  /* Selection color matching brand */
+  ::selection {
+    background: rgba(139, 92, 246, 0.3);
+    color: white;
+  }
+
+  /* Hide number input spin buttons */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer utilities {
+  .btn-press {
+    transition: transform 160ms var(--ease-ui-out),
+                background-color 200ms ease,
+                border-color 200ms ease,
+                color 200ms ease,
+                opacity 200ms ease,
+                box-shadow 200ms ease;
+  }
+  .btn-press:active {
+    transform: scale(0.97);
+  }
+
+  .glass-surface {
+    /* Subtle surface elevation — no backdrop-blur on scrolling content */
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-surface-elevated {
+    /* Slightly more visible, for interactive cards */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .glow-border {
+    border: 1px solid rgba(139, 92, 246, 0.4);
+  }
+}
+
+/* Respect system reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Background blob animations — matching focus-web exactly */
+@keyframes pulseBlob {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.15; }
+  100% { transform: scale(1.1) translate(5%, -5%); opacity: 0.3; }
+}
+
+.ambient-blob-1 {
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 60vw;
+  height: 60vw;
+  min-width: 500px;
+  min-height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-focus-primary) 0%, transparent 60%);
+  filter: blur(100px);
+  animation: pulseBlob 15s infinite alternate ease-in-out;
+  pointer-events: none;
+}
+
+.ambient-blob-2 {
+  position: absolute;
+  bottom: 0%;
+  right: -10%;
+  width: 70vw;
+  height: 70vw;
+  min-width: 600px;
+  min-height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-focus-secondary) 0%, transparent 60%);
+  filter: blur(100px);
+  animation: pulseBlob 20s infinite alternate-reverse ease-in-out;
+  pointer-events: none;
+}
+
+/* Toast animation */
+@keyframes toast-slide-up {
+  from { transform: translateY(100%) translateX(-50%); opacity: 0; }
+  to { transform: translateY(0) translateX(-50%); opacity: 1; }
+}
+
+.toast-enter {
+  animation: toast-slide-up 0.3s var(--ease-ui-out) forwards;
+}

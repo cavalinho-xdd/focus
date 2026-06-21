@@ -1,0 +1,51 @@
+node_modules/
+.npm/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Build outputs
+dist/
+release/
+out/
+build/
+*.exe
+*.dmg
+*.AppImage
+*.deb
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# AI Agents
+.gemini/
+.agent/
+.agents/
+.continue/
+.claude/
+.codex/
+.impeccable/
+.tokensave/
+agent_docs/
+skills-lock.json
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.md    
+!README.md  
